@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor // gera construtor injetando jdbcTemplate automaticamente
+@RequiredArgsConstructor
 public class ArmaRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;

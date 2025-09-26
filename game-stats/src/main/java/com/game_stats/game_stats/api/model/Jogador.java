@@ -26,4 +26,8 @@ public class Jogador {
     public void setDadosId(Integer dadosId) {
         this.dadosId = dadosId;
     }
+
+    public Object getRankJogador() {
+        return null;
+    }
 }

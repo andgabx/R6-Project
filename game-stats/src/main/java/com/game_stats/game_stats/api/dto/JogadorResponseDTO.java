@@ -1,29 +1,17 @@
 package com.game_stats.game_stats.api.dto;
 
+import lombok.Data;
+
+@Data
 public class JogadorResponseDTO {
-    private Integer id;
+    private Integer idJogador;
     private String nickname;
-    private Integer dadosId;
+    private String rankJogador;
 
-    // Getters e Setters
-    public Integer getId() {
-        return id;
-    }
-    public void setId(Integer id) {
-        this.id = id;
+    public void setId(Integer idJogador) {
+
     }
 
-    public String getNickname() {
-        return nickname;
-    }
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public Integer getDadosId() {
-        return dadosId;
-    }
     public void setDadosId(Integer dadosId) {
-        this.dadosId = dadosId;
     }
 }

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor // gera construtor com os args "final"
+@RequiredArgsConstructor
 public class ArmaService {
 
     private final ArmaRepository repository;
@@ -37,6 +37,10 @@ public class ArmaService {
     }
 
     public void atualizar(Integer id, ArmaRequestDTO dto) {
+        // Validar se a arma existe
+        repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Arma não encontrada"));
+
         Arma arma = new Arma();
         arma.setIdArma(id);
         arma.setNome(dto.getNome());
@@ -46,6 +50,10 @@ public class ArmaService {
     }
 
     public void deletar(Integer id) {
+        // Validar se a arma existe
+        repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Arma não encontrada"));
+
         repository.delete(id);
     }
 
