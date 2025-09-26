@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/game_stats?useSSL=false&serverTimezone=UTC
+    username: game_user
+    password: game_pass
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa: # NÃO vamos usar JPA, mas deixar claro para evitar auto-config
+    open-in-view: false
+
+  sql:
+    init:
+      mode: never # Desabilita a inicialização automática de schema.sql/data.sql do Spring Boot, pois usaremos Flyway
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html # URL para acessar o Swagger UI
+  api-docs:
+    path: /v3/api-docs # URL para o arquivo OpenAPI JSON
+
+server:
+  port: 8080 # Porta que o backend vai rodar
