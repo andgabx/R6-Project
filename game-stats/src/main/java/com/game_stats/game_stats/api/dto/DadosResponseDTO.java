@@ -3,14 +3,9 @@ package com.game_stats.game_stats.api.dto;
 import lombok.Data;
 
 @Data
-public class JogadorResponseDTO {
-    private Integer idJogador;
-    private String nickname;
 
-    // ID de ligação
-    private Integer dadosId;
-
-    // Estatísticas do jogador (da tabela Dados)
+public class DadosResponseDTO {
+    private Integer id;
     private Integer nivel;
     private Double winrate;
     private String rankJogador;

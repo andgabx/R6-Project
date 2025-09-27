@@ -1,33 +1,10 @@
 package com.game_stats.game_stats.api.model;
 
+import lombok.Data;
+
+@Data
 public class Jogador {
-    private Integer idJogador;
-    private String nickname;
-    private Integer dadosId; // FK opcional para Dados
-
-    // Getters e Setters
-    public Integer getIdJogador() {
-        return idJogador;
-    }
-    public void setIdJogador(Integer idJogador) {
-        this.idJogador = idJogador;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public Integer getDadosId() {
-        return dadosId;
-    }
-    public void setDadosId(Integer dadosId) {
-        this.dadosId = dadosId;
-    }
-
-    public Object getRankJogador() {
-        return null;
-    }
+    private Integer idJogador;   // mapeia ID_Jogador
+    private String nickname;     // mapeia Nickname
+    private Integer dadosId;     // mapeia fk_Dados_Dados_PK_INT
 }

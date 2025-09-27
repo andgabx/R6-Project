@@ -13,71 +13,77 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class PartidaRepository {
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
+
+    private static final BeanPropertyRowMapper<Partida> ROW_MAPPER =
+            new BeanPropertyRowMapper<>(Partida.class);
 
     public List<Partida> findAll() {
         String sql = """
-            SELECT ID_Partida as idPartida,
-                   Jogador_ID as jogadorId,
-                   Operador_ID as operadorId,
-                   Kills as kills,
-                   Deaths as deaths,
-                   Vitoria as vitoria,
-                   DataPartida as dataPartida
-            FROM Partida
-        """;
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Partida.class));
+                SELECT
+                    ID_Partida      AS idPartida,
+                    Resultado       AS resultado,
+                    fk_Mapa_ID_Mapa AS mapaId,
+                    fk_Modo_de_Jogo_ID_Modo_de_Jogo AS modoDeJogoId,
+                    DataHora        AS dataHora
+                FROM Partida
+                """;
+        return jdbcTemplate.query(sql, ROW_MAPPER);
     }
 
     public Optional<Partida> findById(Integer id) {
         String sql = """
-            SELECT ID_Partida as idPartida,
-                   Jogador_ID as jogadorId,
-                   Operador_ID as operadorId,
-                   Kills as kills,
-                   Deaths as deaths,
-                   Vitoria as vitoria,
-                   DataPartida as dataPartida
-            FROM Partida WHERE ID_Partida = :id
-        """;
+                SELECT
+                    ID_Partida      AS idPartida,
+                    Resultado       AS resultado,
+                    fk_Mapa_ID_Mapa AS mapaId,
+                    fk_Modo_de_Jogo_ID_Modo_de_Jogo AS modoDeJogoId,
+                    DataHora        AS dataHora
+                FROM Partida
+                WHERE ID_Partida = :id
+                """;
         return jdbcTemplate.query(sql,
                         new MapSqlParameterSource("id", id),
-                        new BeanPropertyRowMapper<>(Partida.class))
-                .stream().findFirst();
+                        ROW_MAPPER)
+                .stream()
+                .findFirst();
     }
 
     public int save(Partida partida) {
         String sql = """
-            INSERT INTO Partida (Jogador_ID, Operador_ID, Kills, Deaths, Vitoria, DataPartida)
-            VALUES (:jogadorId, :operadorId, :kills, :deaths, :vitoria, :dataPartida)
-        """;
+                INSERT INTO Partida
+                    (Resultado, fk_Mapa_ID_Mapa, fk_Modo_de_Jogo_ID_Modo_de_Jogo, DataHora)
+                VALUES
+                    (:resultado, :mapaId, :modoDeJogoId, :dataHora)
+                """;
+
         MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("jogadorId", partida.getJogadorId())
-                .addValue("operadorId", partida.getOperadorId())
-                .addValue("kills", partida.getKills())
-                .addValue("deaths", partida.getDeaths())
-                .addValue("vitoria", partida.getVitoria())
-                .addValue("dataPartida", partida.getDataPartida());
+                .addValue("resultado", partida.getResultado())
+                .addValue("mapaId", partida.getMapaId())
+                .addValue("modoDeJogoId", partida.getModoDeJogoId())
+                .addValue("dataHora", partida.getDataHora());
+
         return jdbcTemplate.update(sql, params);
     }
 
     public int update(Partida partida) {
         String sql = """
-            UPDATE Partida
-            SET Jogador_ID = :jogadorId,
-                Operador_ID = :operadorId,
-                Kills = :kills,
-                Deaths = :deaths,
-                Vitoria = :vitoria
-            WHERE ID_Partida = :id
-        """;
+                UPDATE Partida
+                   SET Resultado = :resultado,
+                       fk_Mapa_ID_Mapa = :mapaId,
+                       fk_Modo_de_Jogo_ID_Modo_de_Jogo = :modoDeJogoId,
+                       DataHora = :dataHora
+                 WHERE ID_Partida = :id
+                """;
+
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", partida.getIdPartida())
-                .addValue("jogadorId", partida.getJogadorId())
-                .addValue("operadorId", partida.getOperadorId())
-                .addValue("kills", partida.getKills())
-                .addValue("deaths", partida.getDeaths())
-                .addValue("vitoria", partida.getVitoria());
+                .addValue("resultado", partida.getResultado())
+                .addValue("mapaId", partida.getMapaId())
+                .addValue("modoDeJogoId", partida.getModoDeJogoId())
+                .addValue("dataHora", partida.getDataHora());
+
         return jdbcTemplate.update(sql, params);
     }
 

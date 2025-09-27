@@ -3,6 +3,7 @@ package com.game_stats.game_stats.api.controller;
 import com.game_stats.game_stats.api.dto.OperadorRequestDTO;
 import com.game_stats.game_stats.api.dto.OperadorResponseDTO;
 import com.game_stats.game_stats.api.service.OperadorService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +11,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/operadores")
+@Tag(name = "Operadores", description = "Gerenciar os Operadores existentes e os que pode vir futuramente")
+
 public class OperadorController {
 
     private final OperadorService operadorService;

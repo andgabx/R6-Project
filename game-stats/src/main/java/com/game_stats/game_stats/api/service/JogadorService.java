@@ -1,5 +1,6 @@
 package com.game_stats.game_stats.api.service;
 
+import com.game_stats.game_stats.api.dto.JogadorResponseDTO;
 import com.game_stats.game_stats.api.model.Jogador;
 import com.game_stats.game_stats.api.repository.JogadorRepository;
 import org.springframework.stereotype.Service;
@@ -58,5 +59,13 @@ public class JogadorService {
             throw new IllegalArgumentException("Jogador com ID " + id + " não encontrado.");
         }
         repository.delete(id);
+    }
+
+    public List<Jogador> listarPorKdMinimo(Double kdMinimo) {
+        return repository.findByKdGreaterThan(kdMinimo);
+    }
+
+    public List<Jogador> listarPorWinrateMinimo(Double winrateMinimo) {
+        return repository.findByWinrateGreaterThan(winrateMinimo);
     }
 }

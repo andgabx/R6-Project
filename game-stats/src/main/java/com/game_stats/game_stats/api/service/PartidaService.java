@@ -1,26 +1,26 @@
 package com.game_stats.game_stats.api.service;
 
-import com.game_stats.game_stats.api.dto.JogadorResponseDTO;
-import com.game_stats.game_stats.api.dto.OperadorResponseDTO;
+import com.game_stats.game_stats.api.dto.MapaResponseDTO;
+import com.game_stats.game_stats.api.dto.ModoDeJogoResponseDTO;
 import com.game_stats.game_stats.api.dto.PartidaRequestDTO;
 import com.game_stats.game_stats.api.dto.PartidaResponseDTO;
+import com.game_stats.game_stats.api.model.Mapa;
+import com.game_stats.game_stats.api.model.ModoDeJogo;
 import com.game_stats.game_stats.api.model.Partida;
-import com.game_stats.game_stats.api.repository.JogadorRepository;
-import com.game_stats.game_stats.api.repository.OperadorRepository;
 import com.game_stats.game_stats.api.repository.PartidaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PartidaService {
+
     private final PartidaRepository partidaRepository;
-    private final JogadorRepository jogadorRepository;
-    private final OperadorRepository operadorRepository;
+    private final MapaService mapaService;
+    private final ModoDeJogoService modoDeJogoService;
 
     public List<PartidaResponseDTO> listarTodas() {
         return partidaRepository.findAll().stream()
@@ -35,20 +35,18 @@ public class PartidaService {
     }
 
     public void criar(PartidaRequestDTO dto) {
-        // validar FK Jogador
-        jogadorRepository.findById(dto.getJogadorId())
-                .orElseThrow(() -> new RuntimeException("Jogador não encontrado"));
-        // validar FK Operador
-        operadorRepository.findById(dto.getOperadorId())
-                .orElseThrow(() -> new RuntimeException("Operador não encontrado"));
+        // valida FKs
+        Mapa mapa = mapaService.buscarPorId(dto.getMapaId())
+                .orElseThrow(() -> new RuntimeException("Mapa não encontrado"));
+        ModoDeJogo modo = modoDeJogoService.buscarPorId(dto.getModoDeJogoId())
+                .orElseThrow(() -> new RuntimeException("Modo de jogo não encontrado"));
 
         Partida partida = new Partida();
-        partida.setJogadorId(dto.getJogadorId());
-        partida.setOperadorId(dto.getOperadorId());
-        partida.setKills(dto.getKills());
-        partida.setDeaths(dto.getDeaths());
-        partida.setVitoria(dto.getVitoria());
-        partida.setDataPartida(LocalDateTime.now());
+        partida.setResultado(dto.getResultado());
+        partida.setMapaId(mapa.getIdMapa());
+        partida.setModoDeJogoId(modo.getIdModoDeJogo());
+        partida.setDataHora(dto.getDataHora());
+
         partidaRepository.save(partida);
     }
 
@@ -56,13 +54,18 @@ public class PartidaService {
         partidaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Partida não encontrada"));
 
+        Mapa mapa = mapaService.buscarPorId(dto.getMapaId())
+                .orElseThrow(() -> new RuntimeException("Mapa não encontrado"));
+        ModoDeJogo modo = modoDeJogoService.buscarPorId(dto.getModoDeJogoId())
+                .orElseThrow(() -> new RuntimeException("Modo de jogo não encontrado"));
+
         Partida partida = new Partida();
         partida.setIdPartida(id);
-        partida.setJogadorId(dto.getJogadorId());
-        partida.setOperadorId(dto.getOperadorId());
-        partida.setKills(dto.getKills());
-        partida.setDeaths(dto.getDeaths());
-        partida.setVitoria(dto.getVitoria());
+        partida.setResultado(dto.getResultado());
+        partida.setMapaId(mapa.getIdMapa());
+        partida.setModoDeJogoId(modo.getIdModoDeJogo());
+        partida.setDataHora(dto.getDataHora());
+
         partidaRepository.update(partida);
     }
 
@@ -75,27 +78,23 @@ public class PartidaService {
     private PartidaResponseDTO toResponse(Partida partida) {
         PartidaResponseDTO dto = new PartidaResponseDTO();
         dto.setIdPartida(partida.getIdPartida());
-        dto.setKills(partida.getKills());
-        dto.setDeaths(partida.getDeaths());
-        dto.setVitoria(partida.getVitoria());
-        dto.setDataPartida(partida.getDataPartida());
+        dto.setResultado(partida.getResultado());
+        dto.setDataHora(partida.getDataHora());
 
-        // Jogador
-        jogadorRepository.findById(partida.getJogadorId()).ifPresent(j -> {
-            JogadorResponseDTO jr = new JogadorResponseDTO();
-            jr.setIdJogador(j.getIdJogador());
-            jr.setNickname(j.getNickname());
-            jr.setRankJogador((String) j.getRankJogador());
-            dto.setJogador(jr);
+        mapaService.buscarPorId(partida.getMapaId()).ifPresent(m -> {
+            MapaResponseDTO mapaDto = new MapaResponseDTO();
+            mapaDto.setIdMapa(m.getIdMapa());
+            mapaDto.setNome(m.getNome());
+            dto.setMapa(mapaDto);
         });
 
-        // Operador
-        operadorRepository.findById(partida.getOperadorId()).ifPresent(o -> {
-            OperadorResponseDTO or = new OperadorResponseDTO();
-            or.setIdOperador(o.getIdOperador());
-            or.setNome(o.getNome());
-            or.setFuncao(o.getFuncao());
-            dto.setOperador(or);
+        modoDeJogoService.buscarPorId(partida.getModoDeJogoId()).ifPresent(m -> {
+            ModoDeJogoResponseDTO modoDto = new ModoDeJogoResponseDTO();
+            modoDto.setIdModoDeJogo(m.getIdModoDeJogo());
+            modoDto.setNome(m.getNome());
+            modoDto.setDescricao(m.getDescricao());
+            modoDto.setTipo(m.getTipo());
+            dto.setModoDeJogo(modoDto);
         });
 
         return dto;
