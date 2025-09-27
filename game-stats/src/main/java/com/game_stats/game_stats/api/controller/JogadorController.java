@@ -83,6 +83,13 @@ public class JogadorController {
         return jogadorService.listarPorWinrateMinimo(winrateMinimo);
     }
 
+    @GetMapping("/nivel")
+    @Operation(summary = "Listar jogadores com nível acima de um valor")
+    public List<JogadorResponseDTO> listarPorNivel(
+            @RequestParam("min") Integer nivelMinimo) {
+        return jogadorService.listarPorNivelMinimo(nivelMinimo);
+    }
+
 
 
     // =======================================

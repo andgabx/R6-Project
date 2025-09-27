@@ -68,4 +68,8 @@ public class JogadorService {
     public List<Jogador> listarPorWinrateMinimo(Double winrateMinimo) {
         return repository.findByWinrateGreaterThan(winrateMinimo);
     }
+
+    public List<JogadorResponseDTO> listarPorNivelMinimo(Integer nivelMinimo) {
+        return repository.findByNivelGreaterThan(nivelMinimo);
+    }
 }

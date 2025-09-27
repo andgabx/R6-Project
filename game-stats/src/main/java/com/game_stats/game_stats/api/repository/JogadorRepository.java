@@ -20,6 +20,9 @@ public class JogadorRepository {
     private static final BeanPropertyRowMapper<Jogador> JOGADOR_ROW_MAPPER =
             new BeanPropertyRowMapper<>(Jogador.class);
 
+    private  static final BeanPropertyRowMapper<JogadorResponseDTO> JOGADOR_RESPONSE_DTO_BEAN_PROPERTY_ROW_MAPPER =
+            new BeanPropertyRowMapper<>(JogadorResponseDTO.class);
+
     public List<Jogador> findAll() {
         String sql = """
                 SELECT ID_Jogador            AS idJogador,
@@ -143,4 +146,27 @@ public class JogadorRepository {
 
         return jdbcTemplate.query(sql, params, JOGADOR_ROW_MAPPER);
     }
+
+    public List<JogadorResponseDTO> findByNivelGreaterThan(Integer nivelMinimo) {
+        String sql = """
+                SELECT j.ID_Jogador            AS idJogador,
+                       j.Nickname              AS nickname,
+                       j.fk_Dados_Dados_PK_INT AS dadosId,
+                       d.Nivel                 AS nivel,
+                       d.KD                    AS kd,
+                       d.Winrate               AS winrate,
+                       d.RankJogador           AS rankJogador,
+                       d.Headshot              AS headshot
+                  FROM Jogador j
+                  JOIN Dados d ON d.Dados_PK_INT = j.fk_Dados_Dados_PK_INT
+                 WHERE d.Nivel > :nivelMinimo
+                 ORDER BY d.Nivel DESC
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("nivelMinimo", nivelMinimo);
+
+        return jdbcTemplate.query(sql, params, JOGADOR_RESPONSE_DTO_BEAN_PROPERTY_ROW_MAPPER);
+    }
+
 }
