@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/times")
+@RequestMapping("/api/team")
 @Tag(name = "Times", description = "Gerenciamento de times e seus jogadores")
 @RequiredArgsConstructor
 public class TimeController {

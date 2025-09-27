@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/partidas")
+@RequestMapping("/api/match")
 @Tag(name = "Partidas", description = "Gerenciamento de partidas")
 @RequiredArgsConstructor
 public class PartidaController {

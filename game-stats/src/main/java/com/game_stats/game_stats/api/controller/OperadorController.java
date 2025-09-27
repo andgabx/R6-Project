@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/operadores")
+@RequestMapping("/api/operators")
 @Tag(name = "Operadores", description = "Gerenciar os Operadores existentes e os que pode vir futuramente")
 
 public class OperadorController {

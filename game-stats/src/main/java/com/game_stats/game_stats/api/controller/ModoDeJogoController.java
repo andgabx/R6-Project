@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/modos-de-jogo")
+@RequestMapping("/api/gamemodes")
 @Tag(name = "Modo de Jogo", description = "Operações que envolvam o modo de jogo")
 
 public class ModoDeJogoController {

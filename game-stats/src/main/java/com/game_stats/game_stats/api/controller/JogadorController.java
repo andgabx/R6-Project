@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/jogadores")
+@RequestMapping("/api/players")
 @Tag(name = "Jogadores", description = "Operações dos Jogadores")
 
 public class JogadorController {
@@ -54,7 +54,7 @@ public class JogadorController {
     }
 
     @GetMapping("/minkd")
-    @Operation(summary = "Listar jogadores com kd acima de um valor determinado")
+    @Operation(summary = "Listar jogadores com kd acima de um valor determinado - FUNCIONAL")
     public List<Jogador> listarPorKdMinimo(@RequestParam("kdMin") Double kdMinimo) {
         return jogadorService.listarPorKdMinimo(kdMinimo);
     }
@@ -77,14 +77,14 @@ public class JogadorController {
     }
 
     @GetMapping("/winrate")
-    @Operation(summary = "Listar jogadores com winrate acima de um valor")
+    @Operation(summary = "Listar jogadores com winrate acima de um valor - FUNCIONAL")
     public List<Jogador> listarPorWinrate(
             @RequestParam("min") Double winrateMinimo) {
         return jogadorService.listarPorWinrateMinimo(winrateMinimo);
     }
 
-    @GetMapping("/nivel")
-    @Operation(summary = "Listar jogadores com nível acima de um valor")
+    @GetMapping("/leve")
+    @Operation(summary = "Listar jogadores com nível acima de um valor - FUNCIONAL")
     public List<JogadorResponseDTO> listarPorNivel(
             @RequestParam("min") Integer nivelMinimo) {
         return jogadorService.listarPorNivelMinimo(nivelMinimo);

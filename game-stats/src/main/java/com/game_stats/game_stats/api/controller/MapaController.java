@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/mapas")
+@RequestMapping("/api/maps")
 @Tag(name = "Mapa", description = "Operações relacionadas aos mapas do jogo")
 public class MapaController {
 

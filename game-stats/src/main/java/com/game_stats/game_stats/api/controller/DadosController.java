@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/dados")
+@RequestMapping("/api/data")
 public class DadosController {
 
     private final DadosService service;
