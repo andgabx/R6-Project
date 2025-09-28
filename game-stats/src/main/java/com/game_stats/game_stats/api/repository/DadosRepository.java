@@ -17,39 +17,65 @@ public class DadosRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private RowMapper<Dados> rowMapper = (rs, rowNum) -> {
+    // RowMapper atualizado para incluir TODOS os campos do modelo Dados
+    private final RowMapper<Dados> rowMapper = (rs, rowNum) -> {
         Dados d = new Dados();
         d.setId(rs.getInt("Dados_PK_INT"));
         d.setNivel(rs.getInt("Nivel"));
-        d.setWinrate(rs.getDouble("Winrate"));
+        d.setWinrate(rs.getBigDecimal("Winrate")); // Usar BigDecimal para DECIMAL
         d.setRankJogador(rs.getString("RankJogador"));
-        d.setHeadshot(rs.getDouble("Headshot"));
-        d.setKd(rs.getDouble("KD"));
+        d.setHeadshot(rs.getFloat("Headshot")); // Usar Float para FLOAT
+        d.setKd(rs.getBigDecimal("KD")); // Usar BigDecimal para DECIMAL
+
+        // --- Novos campos adicionados ---
+        d.setPlataforma(rs.getString("Plataforma"));
+        d.setHorasJogadas(rs.getInt("Horas_jogadas"));
+        d.setMainRole(rs.getString("Main_role"));
+        d.setPreferenciaJogo(rs.getString("Preferencia_jogo"));
+
+        // Usar getObject para tratar possíveis valores nulos para as chaves estrangeiras
+        d.setFkMapaFavorito(rs.getObject("fk_Mapa_favorito", Integer.class));
+        d.setFkMapaMaisVitorias(rs.getObject("fk_Mapa_mais_vitorias", Integer.class));
+        d.setFkMapaMaisDerrotas(rs.getObject("fk_Mapa_mais_derrotas", Integer.class));
+
         return d;
     };
 
     public List<Dados> findAll() {
-        return jdbcTemplate.query("SELECT * FROM Dados", rowMapper);
+        // É uma boa prática listar as colunas em vez de usar SELECT *
+        String sql = "SELECT Dados_PK_INT, Nivel, Winrate, RankJogador, Headshot, KD, Plataforma, Horas_jogadas, Main_role, Preferencia_jogo, fk_Mapa_favorito, fk_Mapa_mais_vitorias, fk_Mapa_mais_derrotas FROM Dados";
+        return jdbcTemplate.query(sql, rowMapper);
     }
 
     public Optional<Dados> findById(Integer id) {
-        List<Dados> result = jdbcTemplate.query(
-                "SELECT * FROM Dados WHERE Dados_PK_INT = ?", rowMapper, id);
+        String sql = "SELECT Dados_PK_INT, Nivel, Winrate, RankJogador, Headshot, KD, Plataforma, Horas_jogadas, Main_role, Preferencia_jogo, fk_Mapa_favorito, fk_Mapa_mais_vitorias, fk_Mapa_mais_derrotas FROM Dados WHERE Dados_PK_INT = ?";
+        List<Dados> result = jdbcTemplate.query(sql, rowMapper, id);
         return result.stream().findFirst();
     }
 
     public Dados save(Dados dados) {
-        jdbcTemplate.update(
-                "INSERT INTO Dados (Nivel, Winrate, RankJogador, Headshot, KD) VALUES (?, ?, ?, ?, ?)",
-                dados.getNivel(), dados.getWinrate(), dados.getRankJogador(), dados.getHeadshot(), dados.getKd()
+        // Query de INSERT atualizada com todos os campos
+        String sql = "INSERT INTO Dados (Nivel, Winrate, RankJogador, Headshot, KD, Plataforma, Horas_jogadas, Main_role, Preferencia_jogo, fk_Mapa_favorito, fk_Mapa_mais_vitorias, fk_Mapa_mais_derrotas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        jdbcTemplate.update(sql,
+                dados.getNivel(), dados.getWinrate(), dados.getRankJogador(), dados.getHeadshot(), dados.getKd(),
+                dados.getPlataforma(), dados.getHorasJogadas(), dados.getMainRole(), dados.getPreferenciaJogo(),
+                dados.getFkMapaFavorito(), dados.getFkMapaMaisVitorias(), dados.getFkMapaMaisDerrotas()
         );
-        return dados; // antonio se tu precisar do id gerado tu usa keyholder que fica safe
+        // O ideal aqui é usar KeyHolder para retornar o ID, como diz o comentário.
+        // Por enquanto, apenas retornamos o objeto de entrada.
+        return dados;
     }
 
     public void update(Dados dados) {
-        jdbcTemplate.update(
-                "UPDATE Dados SET Nivel=?, Winrate=?, RankJogador=?, Headshot=?, KD=? WHERE Dados_PK_INT=?",
-                dados.getNivel(), dados.getWinrate(), dados.getRankJogador(), dados.getHeadshot(), dados.getKd(), dados.getId()
+        // Query de UPDATE atualizada com todos os campos
+        String sql = "UPDATE Dados SET Nivel=?, Winrate=?, RankJogador=?, Headshot=?, KD=?, Plataforma=?, Horas_jogadas=?, Main_role=?, Preferencia_jogo=?, fk_Mapa_favorito=?, fk_Mapa_mais_vitorias=?, fk_Mapa_mais_derrotas=? WHERE Dados_PK_INT=?";
+
+        jdbcTemplate.update(sql,
+                dados.getNivel(), dados.getWinrate(), dados.getRankJogador(), dados.getHeadshot(), dados.getKd(),
+                dados.getPlataforma(), dados.getHorasJogadas(), dados.getMainRole(), dados.getPreferenciaJogo(),
+                dados.getFkMapaFavorito(), dados.getFkMapaMaisVitorias(), dados.getFkMapaMaisDerrotas(),
+                dados.getId()
         );
     }
 
