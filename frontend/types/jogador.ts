@@ -1,6 +1,6 @@
 // types/jogador.ts
 export interface Jogador {
-  id: number;
+  idJogador: number;
   nickname: string;
   dadosId: number | null;
 }

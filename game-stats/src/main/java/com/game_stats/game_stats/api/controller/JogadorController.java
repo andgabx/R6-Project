@@ -76,14 +76,14 @@ public class JogadorController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/winrate")
+    @GetMapping("/minwinrate")
     @Operation(summary = "Listar jogadores com winrate acima de um valor - FUNCIONAL")
     public List<Jogador> listarPorWinrate(
             @RequestParam("min") Double winrateMinimo) {
         return jogadorService.listarPorWinrateMinimo(winrateMinimo);
     }
 
-    @GetMapping("/leve")
+    @GetMapping("/minlevel")
     @Operation(summary = "Listar jogadores com nível acima de um valor - FUNCIONAL")
     public List<JogadorResponseDTO> listarPorNivel(
             @RequestParam("min") Integer nivelMinimo) {
