@@ -1,5 +1,7 @@
 package com.game_stats.game_stats.api.controller;
 
+import com.game_stats.game_stats.api.dto.MelhorJogadorDTO;
+import com.game_stats.game_stats.api.dto.OperadorPopularidadeDTO;
 import com.game_stats.game_stats.api.dto.OperadorRequestDTO;
 import com.game_stats.game_stats.api.dto.OperadorResponseDTO;
 import com.game_stats.game_stats.api.service.OperadorService;
@@ -47,5 +49,19 @@ public class OperadorController {
     public ResponseEntity<String> deletar(@PathVariable Integer id) {
         operadorService.deletar(id);
         return ResponseEntity.ok("Operador deletado com sucesso!");
+    }
+
+    @GetMapping("/ataque/populares")
+    public ResponseEntity<List<OperadorPopularidadeDTO>> getTop5PopularAttackOperators() {
+        List<OperadorPopularidadeDTO> populares = operadorService.getTop5PopularAttackOperators();
+        return ResponseEntity.ok(populares);
+    }
+
+    @GetMapping("/ataque/{nome}/melhor-jogador")
+    public ResponseEntity<MelhorJogadorDTO> getBestPlayerForAttackOperator(@PathVariable String nome) {
+        // O service retorna um Optional, o que é perfeito para o controller decidir a resposta HTTP
+        return operadorService.getBestPlayerForAttackOperator(nome)
+                .map(dto -> ResponseEntity.ok(dto)) // Se o Optional contém um valor, mapeia para uma resposta 200 OK
+                .orElse(ResponseEntity.notFound().build()); // Se o Optional está vazio, retorna uma resposta 404 Not Found
     }
 }

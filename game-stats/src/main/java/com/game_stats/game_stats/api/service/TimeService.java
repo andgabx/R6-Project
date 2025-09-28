@@ -1,5 +1,6 @@
 package com.game_stats.game_stats.api.service;
 
+import com.game_stats.game_stats.api.dto.DadosResponseDTO;
 import com.game_stats.game_stats.api.dto.JogadorResponseDTO;
 import com.game_stats.game_stats.api.dto.TimeRequestDTO;
 import com.game_stats.game_stats.api.dto.TimeResponseDTO;
@@ -113,15 +114,17 @@ public class TimeService {
         JogadorResponseDTO dto = new JogadorResponseDTO();
         dto.setIdJogador(jogador.getIdJogador());
         dto.setNickname(jogador.getNickname());
-        dto.setDadosId(jogador.getDadosId());
 
         if (jogador.getDadosId() != null) {
             dadosService.buscarPorId(jogador.getDadosId()).ifPresent(d -> {
-                dto.setNivel(d.getNivel());
-                dto.setWinrate(d.getWinrate());
-                dto.setRankJogador(d.getRankJogador());
-                dto.setHeadshot(d.getHeadshot());
-                dto.setKd(d.getKd());
+                DadosResponseDTO dadosDTO = new DadosResponseDTO();
+                dadosDTO.setId(d.getId());
+                dadosDTO.setNivel(d.getNivel());
+                dadosDTO.setWinrate(d.getWinrate());
+                dadosDTO.setRankJogador(d.getRankJogador());
+                dadosDTO.setHeadshot(d.getHeadshot());
+                dadosDTO.setKd(d.getKd());
+                dto.setDados(dadosDTO);
             });
         }
 

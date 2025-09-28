@@ -1,35 +1,297 @@
-import Link from "next/link";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    Shield,
+    Target,
+    Users,
+    Trophy,
+    Gamepad2,
+    Crosshair,
+    Map,
+    BarChart3,
+    ArrowRight,
+    Activity,
+    Award,
+    Zap,
+} from "lucide-react";
+import Link from "next/link";
+import { ThemeSwitcher } from "@/components/theme-switcher";
+
+export default function HomePage() {
+    const [showWelcomeModal, setShowWelcomeModal] = useState(true);
+
+    const navigationCards = [
+        {
+            title: "Dashboard",
+            description:
+                "Visão geral das estatísticas e métricas principais da plataforma",
+            icon: BarChart3,
+            href: "/dashboard",
+            color: "text-primary",
+            bgColor: "bg-primary/10",
+            stats: "Análises em tempo real",
+        },
+        {
+            title: "Jogadores",
+            description:
+                "Gerencie perfis, rankings e estatísticas detalhadas dos jogadores",
+            icon: Users,
+            href: "/Jogadores",
+            color: "text-chart-1",
+            bgColor: "bg-chart-1/10",
+            stats: "Perfis completos",
+        },
+        {
+            title: "Operadores",
+            description:
+                "Explore habilidades, estatísticas e loadouts dos operadores",
+            icon: Shield,
+            href: "/operators",
+            color: "text-chart-2",
+            bgColor: "bg-chart-2/10",
+            stats: "60+ Operadores",
+        },
+        {
+            title: "Arsenal",
+            description:
+                "Catálogo completo de armas, acessórios e equipamentos",
+            icon: Crosshair,
+            href: "/Armas",
+            color: "text-chart-3",
+            bgColor: "bg-chart-3/10",
+            stats: "Armas & Acessórios",
+        },
+        {
+            title: "Partidas",
+            description:
+                "Histórico de partidas, mapas e análise de performance",
+            icon: Trophy,
+            href: "/matches",
+            color: "text-chart-4",
+            bgColor: "bg-chart-4/10",
+            stats: "Histórico completo",
+        },
+        {
+            title: "Mapas",
+            description:
+                "Informações detalhadas sobre todos os mapas competitivos",
+            icon: Map,
+            href: "/maps",
+            color: "text-chart-5",
+            bgColor: "bg-chart-5/10",
+            stats: "Mapas oficiais",
+        },
+    ];
+
+    const quickStats = [
+        {
+            label: "Jogadores Ativos",
+            value: "1,247",
+            icon: Users,
+            color: "text-primary",
+        },
+        {
+            label: "Partidas Hoje",
+            value: "89",
+            icon: Activity,
+            color: "text-chart-1",
+        },
+        {
+            label: "Taxa de Headshot",
+            value: "47.3%",
+            icon: Target,
+            color: "text-chart-2",
+        },
+        {
+            label: "Operadores Populares",
+            value: "Ash, Jäger",
+            icon: Award,
+            color: "text-chart-3",
+        },
+    ];
+
     return (
-        <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-10">
-            <h1 className="text-5xl font-bold mb-8">Bem-vindo ao Projeto R6</h1>
-            <p className="text-lg text-gray-400 mb-12 text-center">
-                Navegue pelas diferentes seções abaixo para gerenciar e consultar informações.
-            </p>
-            <p className="text-lg text-gray-400 mb-12 text-center">
-                Essa interface foi criada para a entrega do dia 30/09.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-                <Link href="/Armas" className="bg-gray-800 p-8 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-300">
-                    <h2 className="text-3xl font-bold mb-4 text-blue-400">Gerenciamento de Armas</h2>
-                    <p className="text-gray-300">
-                        Consulte, crie, atualize e delete informações sobre as armas do jogo.
+        <div className="min-h-screen bg-background">
+            {/* Welcome Modal */}
+            <Dialog open={showWelcomeModal} onOpenChange={setShowWelcomeModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-primary">
+                            <Shield className="h-6 w-6" />
+                            Rainbow Six Siege Stats
+                        </DialogTitle>
+                        <DialogDescription className="text-pretty">
+                            Bem-vindo à plataforma completa de estatísticas do
+                            Rainbow Six Siege! Explore análises detalhadas,
+                            gerencie jogadores, operadores, armas e acompanhe o
+                            desempenho em partidas. Escolha uma seção abaixo
+                            para começar.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-end">
+                        <Button
+                            onClick={() => setShowWelcomeModal(false)}
+                            className="bg-primary text-primary-foreground"
+                        >
+                            Explorar Plataforma
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Header */}
+            <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
+                <div className="container mx-auto px-4 py-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary/20">
+                                    <Shield className="h-8 w-8 text-primary" />
+                                </div>
+                                <div>
+                                    <h1 className="text-3xl font-bold text-balance">
+                                        R6 Stats Platform
+                                    </h1>
+                                    <p className="text-muted-foreground">
+                                        Rainbow Six Siege Analytics Hub
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <ThemeSwitcher />
+                            <Button
+                                variant="outline"
+                                className="gap-2 bg-transparent"
+                            >
+                                <Zap className="h-4 w-4" />
+                                Status: Online
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main className="container mx-auto px-4 py-8">
+                {/* Hero Section */}
+                <div className="text-center mb-12">
+                    <h2 className="text-4xl font-bold mb-4 text-balance">
+                        Central de Comando Tático
+                    </h2>
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
+                        Acesse todas as funcionalidades da plataforma através
+                        dos módulos organizados abaixo. Cada seção oferece
+                        ferramentas especializadas para análise e gerenciamento.
                     </p>
-                </Link>
-                <Link href="/Jogadores" className="bg-gray-800 p-8 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-300">
-                    <h2 className="text-3xl font-bold mb-4 text-green-400">Gerenciamento de Jogadores</h2>
-                    <p className="text-gray-300">
-                        Consulte, crie, atualize e delete informações sobre os jogadores.
-                    </p>
-                </Link>
-                <Link href="/Graficos" className="bg-gray-800 p-8 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-300 col-span-1 md:col-span-2">
-                    <h2 className="text-3xl font-bold mb-4 text-purple-400">Gráficos</h2>
-                    <p className="text-gray-300">
-                        Visualize gráficos com informações sobre jogadores e armas.
-                    </p>
-                </Link>
-            </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    {quickStats.map((stat, index) => (
+                        <Card key={index} className="bg-card border-border">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-muted-foreground mb-1">
+                                            {stat.label}
+                                        </p>
+                                        <p
+                                            className={`text-2xl font-bold ${stat.color}`}
+                                        >
+                                            {stat.value}
+                                        </p>
+                                    </div>
+                                    <stat.icon
+                                        className={`h-8 w-8 ${stat.color}`}
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Navigation Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {navigationCards.map((card, index) => (
+                        <Card
+                            key={index}
+                            className="bg-card border-border hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                        >
+                            <CardHeader className="pb-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div
+                                        className={`p-3 rounded-lg ${card.bgColor}`}
+                                    >
+                                        <card.icon
+                                            className={`h-8 w-8 ${card.color}`}
+                                        />
+                                    </div>
+                                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                                </div>
+                                <CardTitle className="text-xl mb-2">
+                                    {card.title}
+                                </CardTitle>
+                                <CardDescription className="text-pretty">
+                                    {card.description}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">
+                                        {card.stats}
+                                    </span>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                                        asChild
+                                    >
+                                        <Link href={card.href}>Acessar</Link>
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Footer Info */}
+                <div className="mt-16 text-center">
+                    <Card className="bg-card/50 border-border">
+                        <CardContent className="p-8">
+                            <div className="flex items-center justify-center gap-2 mb-4">
+                                <Gamepad2 className="h-6 w-6 text-primary" />
+                                <h3 className="text-xl font-semibold">
+                                    Plataforma Completa
+                                </h3>
+                            </div>
+                            <p className="text-muted-foreground max-w-2xl mx-auto text-pretty">
+                                Esta plataforma oferece análise completa de
+                                dados do Rainbow Six Siege, incluindo
+                                estatísticas de jogadores, informações de
+                                operadores, arsenal completo, histórico de
+                                partidas e muito mais. Navegue pelas seções para
+                                explorar todas as funcionalidades.
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </main>
         </div>
     );
 }

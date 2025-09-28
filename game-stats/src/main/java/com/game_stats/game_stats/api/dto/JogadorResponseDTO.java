@@ -6,14 +6,5 @@ import lombok.Data;
 public class JogadorResponseDTO {
     private Integer idJogador;
     private String nickname;
-
-    // ID de ligação
-    private Integer dadosId;
-
-    // Estatísticas do jogador (da tabela Dados)
-    private Integer nivel;
-    private Double winrate;
-    private String rankJogador;
-    private Double headshot;
-    private Double kd;
+    private DadosResponseDTO dados;
 }

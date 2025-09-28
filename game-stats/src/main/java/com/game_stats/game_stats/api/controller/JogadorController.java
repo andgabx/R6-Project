@@ -1,5 +1,6 @@
 package com.game_stats.game_stats.api.controller;
 
+import com.game_stats.game_stats.api.dto.DadosResponseDTO;
 import com.game_stats.game_stats.api.dto.JogadorRequestDTO;
 import com.game_stats.game_stats.api.dto.JogadorResponseDTO;
 import com.game_stats.game_stats.api.model.Jogador;
@@ -32,30 +33,27 @@ public class JogadorController {
 
     @GetMapping
     public ResponseEntity<List<JogadorResponseDTO>> listarTodos() {
-        List<Jogador> jogadores = jogadorService.listarTodos();
-        List<JogadorResponseDTO> response = jogadores.stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(response);
+        List<JogadorResponseDTO> jogadores = jogadorService.listarTodos();
+        return ResponseEntity.ok(jogadores);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<JogadorResponseDTO> buscarPorId(@PathVariable Integer id) {
-        Optional<Jogador> jogador = jogadorService.buscarPorId(id);
-        return jogador.map(value -> ResponseEntity.ok(toResponseDTO(value)))
+        Optional<JogadorResponseDTO> jogador = Optional.ofNullable(jogadorService.buscarPorId(id));
+        return jogador.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<JogadorResponseDTO> criarJogador(@Valid @RequestBody JogadorRequestDTO request) {
         Jogador jogador = toModel(request);
-        Jogador criado = jogadorService.criarJogador(jogador);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(criado));
+        JogadorResponseDTO criado = jogadorService.criarJogador(jogador);
+        return ResponseEntity.status(HttpStatus.CREATED).body(criado);
     }
 
     @GetMapping("/minkd")
     @Operation(summary = "Listar jogadores com kd acima de um valor determinado - FUNCIONAL")
-    public List<Jogador> listarPorKdMinimo(@RequestParam("kdMin") Double kdMinimo) {
+    public List<JogadorResponseDTO> listarPorKdMinimo(@RequestParam("kdMin") Double kdMinimo) {
         return jogadorService.listarPorKdMinimo(kdMinimo);
     }
 
@@ -65,8 +63,8 @@ public class JogadorController {
             @Valid @RequestBody JogadorRequestDTO request) {
 
         Jogador jogador = toModel(request);
-        Jogador atualizado = jogadorService.atualizarJogador(id, jogador);
-        return ResponseEntity.ok(toResponseDTO(atualizado));
+        JogadorResponseDTO atualizado = jogadorService.atualizarJogador(id, jogador);
+        return ResponseEntity.ok(atualizado);
     }
 
     @DeleteMapping("/{id}")
@@ -78,7 +76,7 @@ public class JogadorController {
 
     @GetMapping("/minwinrate")
     @Operation(summary = "Listar jogadores com winrate acima de um valor - FUNCIONAL")
-    public List<Jogador> listarPorWinrate(
+    public List<JogadorResponseDTO> listarPorWinrate(
             @RequestParam("min") Double winrateMinimo) {
         return jogadorService.listarPorWinrateMinimo(winrateMinimo);
     }
@@ -99,16 +97,18 @@ public class JogadorController {
         JogadorResponseDTO dto = new JogadorResponseDTO();
         dto.setIdJogador(jogador.getIdJogador());
         dto.setNickname(jogador.getNickname());
-        dto.setDadosId(jogador.getDadosId());
 
         // buscar as estatísticas na tabela Dados
         if (jogador.getDadosId() != null) {
             dadosService.buscarPorId(jogador.getDadosId()).ifPresent(d -> {
-                dto.setNivel(d.getNivel());
-                dto.setWinrate(d.getWinrate());
-                dto.setRankJogador(d.getRankJogador());
-                dto.setHeadshot(d.getHeadshot());
-                dto.setKd(d.getKd());
+                DadosResponseDTO dadosDTO = new DadosResponseDTO();
+                dadosDTO.setId(d.getId());
+                dadosDTO.setNivel(d.getNivel());
+                dadosDTO.setWinrate(d.getWinrate());
+                dadosDTO.setRankJogador(d.getRankJogador());
+                dadosDTO.setHeadshot(d.getHeadshot());
+                dadosDTO.setKd(d.getKd());
+                dto.setDados(dadosDTO);
             });
         }
 

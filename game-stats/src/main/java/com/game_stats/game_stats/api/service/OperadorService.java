@@ -1,8 +1,6 @@
 package com.game_stats.game_stats.api.service;
 
-import com.game_stats.game_stats.api.dto.ArmaResponseDTO;
-import com.game_stats.game_stats.api.dto.OperadorRequestDTO;
-import com.game_stats.game_stats.api.dto.OperadorResponseDTO;
+import com.game_stats.game_stats.api.dto.*;
 import com.game_stats.game_stats.api.model.Operador;
 import com.game_stats.game_stats.api.repository.ArmaRepository;
 import com.game_stats.game_stats.api.repository.OperadorRepository;
@@ -10,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,5 +89,16 @@ public class OperadorService {
         }
 
         return dto;
+    }
+
+    public List<OperadorPopularidadeDTO> getTop5PopularAttackOperators() {
+        return operadorRepository.findTop5PopularAttackOperators();
+    }
+
+    public Optional<MelhorJogadorDTO> getBestPlayerForAttackOperator(String operatorName) {
+        if (operatorName == null || operatorName.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        return operadorRepository.findBestPlayerForAttackOperator(operatorName);
     }
 }

@@ -147,26 +147,25 @@ public class JogadorRepository {
         return jdbcTemplate.query(sql, params, JOGADOR_ROW_MAPPER);
     }
 
-    public List<JogadorResponseDTO> findByNivelGreaterThan(Integer nivelMinimo) {
+    // Dentro da sua classe JogadorRepository.java
+
+    public List<Jogador> findByNivelGreaterThan(Integer nivelMinimo) {
         String sql = """
-                SELECT j.ID_Jogador            AS idJogador,
-                       j.Nickname              AS nickname,
-                       j.fk_Dados_Dados_PK_INT AS dadosId,
-                       d.Nivel                 AS nivel,
-                       d.KD                    AS kd,
-                       d.Winrate               AS winrate,
-                       d.RankJogador           AS rankJogador,
-                       d.Headshot              AS headshot
-                  FROM Jogador j
-                  JOIN Dados d ON d.Dados_PK_INT = j.fk_Dados_Dados_PK_INT
-                 WHERE d.Nivel > :nivelMinimo
-                 ORDER BY d.Nivel DESC
-                """;
+        SELECT
+            j.ID_Jogador as idJogador,
+            j.Nickname as nickname,
+            j.fk_Dados_Dados_PK_INT as dadosId
+        FROM
+            Jogador j
+        JOIN
+            Dados d ON j.fk_Dados_Dados_PK_INT = d.id
+        WHERE
+            d.Nivel > :nivelMinimo
+        """;
 
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("nivelMinimo", nivelMinimo);
+        MapSqlParameterSource params = new MapSqlParameterSource("nivelMinimo", nivelMinimo);
 
-        return jdbcTemplate.query(sql, params, JOGADOR_RESPONSE_DTO_BEAN_PROPERTY_ROW_MAPPER);
+        return jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(Jogador.class));
     }
 
 }
