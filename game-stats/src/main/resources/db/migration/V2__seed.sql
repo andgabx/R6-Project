@@ -7,16 +7,29 @@ INSERT INTO Modo_de_Jogo (Nome, Descricao, Tipo) VALUES
                                                      ('Deathmatch', 'Aquecimento com foco em trocação', 'PVP');
 
 -- Armas (Dados estáticos de exemplo)
-INSERT INTO Arma (Nome, Cadencia, Tipo, Dano, Capacidade) VALUES
-                                                              ('R4-C', 860, 'Rifle de Assalto', 39, 30),
-                                                              ('M590A1', 180, 'Espingarda', 48, 7),
-                                                              ('MP7', 900, 'Submetralhadora', 32, 30),
-                                                              ('LMG-E', 900, 'Metralhadora Leve', 41, 150),
-                                                              ('AK-12', 850, 'Rifle de Assalto', 45, 30),
-                                                              ('T-5 SMG', 900, 'Submetralhadora', 28, 30),
-                                                              ('F2', 980, 'Rifle de Assalto', 37, 25),
-                                                              ('UMP45', 600, 'Submetralhadora', 38, 25),
-                                                              ('MP5', 800, 'Submetralhadora', 27, 30);
+INSERT INTO Arma (ID_Arma, Nome, Cadencia, Tipo, Dano, Capacidade) VALUES
+(1, 'R4-C', 860, 'Rifle de Assalto', 39, 30),
+(2, 'M590A1', 180, 'Espingarda', 48, 7),
+(3, 'MP7', 900, 'Submetralhadora', 32, 30),
+(4, 'LMG-E', 900, 'Metralhadora Leve', 41, 150),
+(5, 'AK-12', 850, 'Rifle de Assalto', 45, 30),
+(6, 'T-5 SMG', 900, 'Submetralhadora', 28, 30),
+(7, 'F2', 980, 'Rifle de Assalto', 37, 25),
+(8, 'UMP45', 600, 'Submetralhadora', 38, 25),
+(9, 'MP5', 800, 'Submetralhadora', 27, 30),
+(10, 'P90', 970, 'Submetralhadora', 22, 50),
+(11, 'SCAR-H', 550, 'Fuzil de Batalha', 49, 20),
+(12, 'G36C', 780, 'Rifle de Assalto', 38, 30),
+(13, '9mm C1', 575, 'Submetralhadora', 45, 33),
+(14, 'C8-SFW', 837, 'Rifle de Assalto', 40, 30),
+(15, '416-C Carbine', 740, 'Carabina', 43, 30),
+(16, 'M870', 100, 'Espingarda', 60, 7),
+(17, '9x19VSN', 750, 'Submetralhadora', 34, 30),
+(18, 'M12', 550, 'Submetralhadora', 40, 30),
+(19, 'PARA-308', 650, 'Rifle de Assalto', 47, 25),
+(20, 'Commando 9', 780, 'Submetralhadora', 36, 25),
+(21, 'P10 RONI', 960, 'Submetralhadora', 26, 19),
+(22, 'AR-15.50', 1, 'Fuzil de Atirador', 62, 10);
 
 -- Mapas (Extraído dos dados)
 INSERT INTO Mapa (Nome) VALUES
@@ -150,29 +163,72 @@ INSERT INTO Jogador (Nickname, fk_Dados_Dados_PK_INT) VALUES
 
 -- Classificação (Ataque/Defesa - Dados de exemplo, associando alguns operadores)
 INSERT INTO Ataque (fk_Operador_ID_Operador, Drone, Gadget_Unico_Ataque, Habilidade_Unica_Ataque) VALUES
-                                                                                                      (1, 2, 'Twitch Drone', 'Dispara laser para destruir gadgets'),
-                                                                                                      (5, 2, 'Breaching Round', 'Dispara um projétil explosivo'),
-                                                                                                      (32, 2, 'Breaching Hammer', 'Marreta para destruir superfícies'), -- CORRIGIDO: ID 16 (Jäger) para 32 (Sledge)
-                                                                                                      (10, 2, 'Skeleton Key', 'Espingarda acoplada para abrir paredes'), -- CORRIGIDO: ID 11 (Frost) para 10 (Buck)
-                                                                                                      (15, 2, 'KS79 LIFELINE', 'Lança granadas de concussão e impacto');
+(1, 2, 'Twitch Drone', 'Dispara laser para destruir gadgets'),
+(3, 2, 'Rifle Shield', 'Escudo montado na arma que protege a cabeça'),
+(5, 2, 'Breaching Round', 'Dispara um projétil explosivo que destrói superfícies'),
+(10, 2, 'Skeleton Key', 'Espingarda acoplada para abrir paredes e pisos'),
+(12, 2, 'Adrenal Surge', 'Aumenta a vida e revive aliados caídos'),
+(13, 2, 'EE-ONE-D', 'Detecta inimigos em movimento com um drone aéreo'),
+(14, 2, 'S.E.L.M.A. Aquabreacher', 'Explosivo aquático que destrói paredes reforçadas'),
+(15, 2, 'KS79 LIFELINE', 'Lança granadas de concussão e de impacto'),
+(19, 2, 'Airjab', 'Mina de ar que empurra os inimigos para trás'),
+(21, 2, 'Gemini Replicator', 'Cria um holograma controlável para enganar inimigos'),
+(23, 2, 'RCE-RATERO Charge', 'Drone explosivo que pode ser guiado sob portas'),
+(27, 2, 'Breaching Torch', 'Maçarico silencioso para criar pequenas aberturas'),
+(28, 2, 'Tactical Crossbow', 'Besta que dispara dardos asfixiantes e de fumaça'),
+(31, 2, 'X-KAIROS', 'Lança projéteis explosivos que abrem paredes reforçadas'),
+(32, 2, 'Breaching Hammer', 'Marreta para destruir superfícies não reforçadas');
 
 INSERT INTO Defesa (fk_Operador_ID_Operador, Gadget_Unico_Defesa, Habilidade_Unica_Defesa, Preparo) VALUES
-                                                                                                        (2, 'Stim Pistol', 'Cura ou revive aliados a distância', 'Manter posição'),
-                                                                                                        (4, 'Armor Pack', 'Fornece coletes de armadura', 'Manter posição'),
-                                                                                                        (7, 'Bandit Battery', 'Eletrifica superfícies de metal', 'Preparar armadilha'),
-                                                                                                        (8, 'Mute Jammer', 'Bloqueia sinal de gadgets eletrônicos', 'Preparar armadilha'),
-                                                                                                        (9, 'Black Eye Camera', 'Câmeras adesivas que podem ser colocadas em qualquer lugar', 'Coletar informação'),
-                                                                                                        (11, 'Welcome Mat', 'Armadilha mecânica para incapacitar inimigos', 'Preparar armadilha'), -- ADICIONADO: Frost (ID 11)
-                                                                                                        (16, 'Active Defense System', 'Destrói projéteis inimigos', 'Manter posição'); -- ADICIONADO: Jäger (ID 16)
+(2, 'Stim Pistol', 'Cura ou revive aliados a distância', 'Manter posição'),
+(4, 'Armor Pack', 'Fornece coletes de armadura extra para a equipe', 'Manter posição'),
+(6, 'Kiba Barrier', 'Lança uma barreira expansível que bloqueia a visão e projéteis', 'Bloquear área'),
+(7, 'Bandit Battery', 'Eletrifica superfícies de metal, destruindo gadgets', 'Preparar armadilha'),
+(8, 'Mute Jammer', 'Bloqueia sinais de gadgets eletrônicos inimigos', 'Preparar armadilha'),
+(9, 'Black Eye Camera', 'Câmeras adesivas que podem ser colocadas em qualquer lugar', 'Coletar informação'),
+(11, 'Welcome Mat', 'Armadilha mecânica que incapacita inimigos', 'Preparar armadilha'),
+(16, 'Active Defense System (ADS)', 'Destrói projéteis inimigos que entram na sua área de efeito', 'Manter posição'),
+(17, 'Gu Mine', 'Mina venenosa e invisível que causa dano e revela inimigos', 'Preparar armadilha'),
+(18, 'Silent Step', 'Habilidade que permite mover-se silenciosamente', 'Roaming'),
+(20, 'Surya Gate', 'Barreira laser que causa dano e destrói drones', 'Bloquear área'),
+(22, 'Razorbloom Shell', 'Dispositivo que explode e lança espinhos quando detecta inimigos', 'Preparar armadilha'),
+(24, 'Entry Denial Device (EDD)', 'Armadilha laser que explode em portas e janelas', 'Preparar armadilha'),
+(25, 'SPEC-IO Electro-Sensor', 'Detecta gadgets eletrônicos através de paredes', 'Coletar informação'),
+(26, 'Banshee Sonic Defense', 'Dispositivo que desacelera e desorienta inimigos', 'Bloquear área'),
+(29, 'Pest Launcher', 'Lança pequenas aranhas robóticas que hackeiam drones inimigos', 'Coletar informação'),
+(30, 'Cardiac Sensor', 'Detecta batimentos cardíacos de inimigos próximos através de paredes', 'Coletar informação');
 
 -- Associação Operador <-> Arma (Dados de exemplo)
 INSERT INTO Porta (fk_Operador_ID_Operador, fk_Arma_ID_Arma) VALUES
-                                                                 (1, 7), (1, 2), -- Twitch: F2, M590A1
-                                                                 (5, 1), (5, 2), -- Ash: R4-C, M590A1
-                                                                 (2, 9), (2, 2), -- Doc: MP5, M590A1
-                                                                 (4, 9), (4, 2), -- Rook: MP5, M590A1
-                                                                 (7, 3), (7, 2), -- Bandit: MP7 (CORRIGIDO de ID 9 para 3), M590A1
-                                                                 (8, 9), (8, 2), -- Mute: MP5, M590A1
-                                                                 (15, 4), (15, 5), -- Zofia: LMG-E, AK-12
-                                                                 (29, 6), -- Mozzie: T-5 SMG
-                                                                 (32, 2); -- Sledge: M590A1
+-- Twitch
+(1, 7), (1, 2),
+-- Doc
+(2, 9), (2, 10),
+-- Blackbeard
+(3, 11), (3, 22),
+-- Rook
+(4, 9), (4, 10),
+-- Ash
+(5, 1), (5, 12),
+-- Bandit
+(7, 3), (7, 16),
+-- Mute
+(8, 9), (8, 2),
+-- Buck
+(10, 14), (10, 22),
+-- Frost
+(11, 13), (11, 2),
+-- Zofia
+(15, 4), (15, 5),
+-- Jäger
+(16, 15), (16, 16),
+-- Caveira
+(18, 12), (18, 18),
+-- Mozzie
+(20, 20), (20, 21),
+-- Capitão
+(28, 19), (28, 4),
+-- Pulse
+(30, 8), (30, 2),
+-- Sledge
+(32, 1), (32, 2);
