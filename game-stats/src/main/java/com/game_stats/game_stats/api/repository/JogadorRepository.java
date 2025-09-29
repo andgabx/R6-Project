@@ -1,5 +1,6 @@
 package com.game_stats.game_stats.api.repository;
 
+import com.game_stats.game_stats.api.dto.JogadorOperadorDTO;
 import com.game_stats.game_stats.api.dto.JogadorResponseDTO;
 import com.game_stats.game_stats.api.model.Jogador;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +20,6 @@ public class JogadorRepository {
 
     private static final BeanPropertyRowMapper<Jogador> JOGADOR_ROW_MAPPER =
             new BeanPropertyRowMapper<>(Jogador.class);
-
-    private  static final BeanPropertyRowMapper<JogadorResponseDTO> JOGADOR_RESPONSE_DTO_BEAN_PROPERTY_ROW_MAPPER =
-            new BeanPropertyRowMapper<>(JogadorResponseDTO.class);
 
     public List<Jogador> findAll() {
         String sql = """
@@ -49,6 +47,35 @@ public class JogadorRepository {
                 .stream()
                 .findFirst();
     }
+    
+    // NOVO MÉTODO
+    public List<JogadorOperadorDTO> findOperadoresAtaqueByJogadorId(Integer jogadorId) {
+        String sql = """
+            SELECT O.Nome AS nomeOperador, JOA.Winrate AS winrate
+            FROM Jogador_Op_Atk JOA
+            JOIN Operador O ON JOA.fk_Operador_Ataque_ID = O.ID_Operador
+            WHERE JOA.fk_Jogador_ID_Jogador = :jogadorId
+            ORDER BY JOA.Winrate DESC
+            """;
+        return jdbcTemplate.query(sql,
+                new MapSqlParameterSource("jogadorId", jogadorId),
+                new BeanPropertyRowMapper<>(JogadorOperadorDTO.class));
+    }
+
+    // NOVO MÉTODO
+    public List<JogadorOperadorDTO> findOperadoresDefesaByJogadorId(Integer jogadorId) {
+        String sql = """
+            SELECT O.Nome AS nomeOperador, JOD.Winrate AS winrate
+            FROM Jogador_Op_Def JOD
+            JOIN Operador O ON JOD.fk_Operador_Defesa_ID = O.ID_Operador
+            WHERE JOD.fk_Jogador_ID_Jogador = :jogadorId
+            ORDER BY JOD.Winrate DESC
+            """;
+        return jdbcTemplate.query(sql,
+                new MapSqlParameterSource("jogadorId", jogadorId),
+                new BeanPropertyRowMapper<>(JogadorOperadorDTO.class));
+    }
+
 
     public Optional<Jogador> findByNickname(String nickname) {
         String sql = """
@@ -147,8 +174,6 @@ public class JogadorRepository {
         return jdbcTemplate.query(sql, params, JOGADOR_ROW_MAPPER);
     }
 
-    // Dentro da sua classe JogadorRepository.java
-
     public List<Jogador> findByNivelGreaterThan(Integer nivelMinimo) {
         String sql = """
         SELECT
@@ -158,7 +183,7 @@ public class JogadorRepository {
         FROM
             Jogador j
         JOIN
-            Dados d ON j.fk_Dados_Dados_PK_INT = d.id
+            Dados d ON j.fk_Dados_Dados_PK_INT = d.Dados_PK_INT
         WHERE
             d.Nivel > :nivelMinimo
         """;
@@ -167,5 +192,4 @@ public class JogadorRepository {
 
         return jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(Jogador.class));
     }
-
 }
