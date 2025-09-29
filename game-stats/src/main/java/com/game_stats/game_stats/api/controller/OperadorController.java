@@ -59,9 +59,9 @@ public class OperadorController {
 
     @GetMapping("/ataque/{nome}/melhor-jogador")
     public ResponseEntity<MelhorJogadorDTO> getBestPlayerForAttackOperator(@PathVariable String nome) {
-        // O service retorna um Optional, o que é perfeito para o controller decidir a resposta HTTP
-        return operadorService.getBestPlayerForAttackOperator(nome)
-                .map(dto -> ResponseEntity.ok(dto)) // Se o Optional contém um valor, mapeia para uma resposta 200 OK
+        // CORRIGIDO: O nome do método foi ajustado de "getBestPlayerForAttackOperator" para "findBestPlayerForAttackOperator"
+        return operadorService.findBestPlayerForAttackOperator(nome)
+                .map(ResponseEntity::ok) // Se o Optional contém um valor, mapeia para uma resposta 200 OK
                 .orElse(ResponseEntity.notFound().build()); // Se o Optional está vazio, retorna uma resposta 404 Not Found
     }
 }

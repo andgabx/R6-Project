@@ -2,6 +2,8 @@ package com.game_stats.game_stats.api.repository;
 
 import com.game_stats.game_stats.api.dto.MelhorJogadorDTO;
 import com.game_stats.game_stats.api.dto.OperadorPopularidadeDTO;
+import com.game_stats.game_stats.api.model.Ataque;
+import com.game_stats.game_stats.api.model.Defesa;
 import com.game_stats.game_stats.api.model.Operador;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -81,6 +83,26 @@ public class OperadorRepository {
     public int delete(Integer id) {
         String sql = "DELETE FROM Operador WHERE ID_Operador = :id";
         return jdbcTemplate.update(sql, new MapSqlParameterSource("id", id));
+    }
+
+    // Buscar dados de Ataque por ID do Operador
+    public Optional<Ataque> findAtaqueByOperadorId(Integer operadorId) {
+        String sql = "SELECT * FROM Ataque WHERE fk_Operador_ID_Operador = :operadorId";
+        return jdbcTemplate.query(sql,
+                        new MapSqlParameterSource("operadorId", operadorId),
+                        new BeanPropertyRowMapper<>(Ataque.class))
+                .stream()
+                .findFirst();
+    }
+
+    // Buscar dados de Defesa por ID do Operador
+    public Optional<Defesa> findDefesaByOperadorId(Integer operadorId) {
+        String sql = "SELECT * FROM Defesa WHERE fk_Operador_ID_Operador = :operadorId";
+        return jdbcTemplate.query(sql,
+                        new MapSqlParameterSource("operadorId", operadorId),
+                        new BeanPropertyRowMapper<>(Defesa.class))
+                .stream()
+                .findFirst();
     }
 
     public List<OperadorPopularidadeDTO> findTop5PopularAttackOperators() {

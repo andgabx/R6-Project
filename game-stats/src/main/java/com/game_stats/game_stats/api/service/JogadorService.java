@@ -1,12 +1,13 @@
 package com.game_stats.game_stats.api.service;
 
 import com.game_stats.game_stats.api.dto.DadosResponseDTO;
+import com.game_stats.game_stats.api.dto.JogadorOperadorDTO;
 import com.game_stats.game_stats.api.dto.JogadorResponseDTO;
 import com.game_stats.game_stats.api.dto.MapaResponseDTO;
 import com.game_stats.game_stats.api.model.Jogador;
 import com.game_stats.game_stats.api.repository.DadosRepository;
 import com.game_stats.game_stats.api.repository.JogadorRepository;
-import com.game_stats.game_stats.api.repository.MapaRepository; // Importar o repositório de Mapa
+import com.game_stats.game_stats.api.repository.MapaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class JogadorService {
 
     private final JogadorRepository jogadorRepository;
     private final DadosRepository dadosRepository;
-    private final MapaRepository mapaRepository; // Adicionar a injeção do MapaRepository
+    private final MapaRepository mapaRepository;
 
     public List<JogadorResponseDTO> listarTodos() {
         return jogadorRepository.findAll().stream()
@@ -81,9 +82,6 @@ public class JogadorService {
                 .collect(Collectors.toList());
     }
 
-    // =======================================================
-    // MÉTODO HELPER ATUALIZADO E COMPLETO
-    // =======================================================
     private JogadorResponseDTO toResponse(Jogador jogador) {
         JogadorResponseDTO jogadorDto = new JogadorResponseDTO();
         jogadorDto.setIdJogador(jogador.getIdJogador());
@@ -98,13 +96,11 @@ public class JogadorService {
                 dadosDto.setRankJogador(dados.getRankJogador());
                 dadosDto.setHeadshot(dados.getHeadshot());
                 dadosDto.setKd(dados.getKd());
-                // --- Mapeamento dos novos campos ---
                 dadosDto.setPlataforma(dados.getPlataforma());
                 dadosDto.setHorasJogadas(dados.getHorasJogadas());
                 dadosDto.setMainRole(dados.getMainRole());
                 dadosDto.setPreferenciaJogo(dados.getPreferenciaJogo());
 
-                // --- Mapeamento dos Mapas Aninhados ---
                 if (dados.getFkMapaFavorito() != null) {
                     mapaRepository.findById(dados.getFkMapaFavorito()).ifPresent(mapa -> {
                         MapaResponseDTO mapaDto = new MapaResponseDTO();
@@ -133,6 +129,14 @@ public class JogadorService {
                 jogadorDto.setDados(dadosDto);
             });
         }
+        
+        // NOVO TRECHO: Busca e adiciona os operadores de ataque e defesa
+        List<JogadorOperadorDTO> operadoresAtaque = jogadorRepository.findOperadoresAtaqueByJogadorId(jogador.getIdJogador());
+        jogadorDto.setOperadoresAtaque(operadoresAtaque);
+
+        List<JogadorOperadorDTO> operadoresDefesa = jogadorRepository.findOperadoresDefesaByJogadorId(jogador.getIdJogador());
+        jogadorDto.setOperadoresDefesa(operadoresDefesa);
+        
         return jogadorDto;
     }
 }
