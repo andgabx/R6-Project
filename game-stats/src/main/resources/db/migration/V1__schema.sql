@@ -183,4 +183,3 @@ CREATE TABLE Contem (
                         CONSTRAINT FK_Contem_Arma FOREIGN KEY (fk_Arma_ID_Arma) REFERENCES Arma(ID_Arma) ON DELETE CASCADE,
                         CONSTRAINT FK_Contem_Acessorio FOREIGN KEY (fk_Acessorio_ID_Acessorio) REFERENCES Acessorio(ID_Acessorio) ON DELETE CASCADE
 );
-

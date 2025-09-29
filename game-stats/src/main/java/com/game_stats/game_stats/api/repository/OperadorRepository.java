@@ -36,11 +36,15 @@ public class OperadorRepository {
 
     // Buscar por ID
     public Optional<Operador> findById(Integer id) {
-        String sql = "SELECT ID_Operador as idOperador, " +
-                "Nome as nome, " +
-                "Funcao as funcao, " +
-                "fk_Arma_ID_Arma as armaId " +
-                "FROM Operador WHERE ID_Operador = :id";
+        String sql = """
+            SELECT
+                ID_Operador as idOperador,
+                Nome as nome,
+                Velocidade as velocidade,
+                Blindagem as blindagem,
+                Unidade_Especial as unidadeEspecial
+            FROM Operador WHERE ID_Operador = :id
+            """;
         return jdbcTemplate.query(sql, new MapSqlParameterSource("id", id),
                         new BeanPropertyRowMapper<>(Operador.class))
                 .stream()
@@ -49,25 +53,27 @@ public class OperadorRepository {
 
     // Criar
     public int save(Operador operador) {
-        String sql = "INSERT INTO Operador (Nome, Funcao, fk_Arma_ID_Arma) " +
-                "VALUES (:nome, :funcao, :armaId)";
+        String sql = "INSERT INTO Operador (Nome, Velocidade, Blindagem, Unidade_Especial) " +
+                "VALUES (:nome, :velocidade, :blindagem, :unidadeEspecial)";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("nome", operador.getNome())
-                .addValue("funcao", operador.getFuncao())
-                .addValue("armaId", operador.getArmaId());
+                .addValue("velocidade", operador.getVelocidade())
+                .addValue("blindagem", operador.getBlindagem())
+                .addValue("unidadeEspecial", operador.getUnidadeEspecial());
         return jdbcTemplate.update(sql, params);
     }
 
     // Atualizar
     public int update(Operador operador) {
         String sql = "UPDATE Operador " +
-                "SET Nome = :nome, Funcao = :funcao, fk_Arma_ID_Arma = :armaId " +
+                "SET Nome = :nome, Velocidade = :velocidade, Blindagem = :blindagem, Unidade_Especial = :unidadeEspecial " +
                 "WHERE ID_Operador = :idOperador";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("idOperador", operador.getIdOperador())
                 .addValue("nome", operador.getNome())
-                .addValue("funcao", operador.getFuncao())
-                .addValue("armaId", operador.getArmaId());
+                .addValue("velocidade", operador.getVelocidade())
+                .addValue("blindagem", operador.getBlindagem())
+                .addValue("unidadeEspecial", operador.getUnidadeEspecial());
         return jdbcTemplate.update(sql, params);
     }
 
@@ -112,7 +118,6 @@ public class OperadorRepository {
                 JOA.Winrate DESC
             LIMIT 1;
         """;
-        // Usando MapSqlParameterSource para o parâmetro nomeado :operatorName
         MapSqlParameterSource params = new MapSqlParameterSource("operatorName", operatorName);
 
         return jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(MelhorJogadorDTO.class))

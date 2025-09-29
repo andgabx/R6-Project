@@ -60,6 +60,19 @@ public class ArmaRepository {
                 .addValue("dano", arma.getDano());
         return jdbcTemplate.update(sql, params);
     }
+    // ... (dentro da classe ArmaRepository)
+
+    public List<Arma> findArmasByOperadorId(Integer operadorId) {
+        String sql = """
+            SELECT a.ID_Arma as idArma, a.Nome as nome, a.Tipo as tipo, a.Dano as dano
+            FROM Arma a
+            JOIN Porta p ON a.ID_Arma = p.fk_Arma_ID_Arma
+            WHERE p.fk_Operador_ID_Operador = :operadorId
+        """;
+        return jdbcTemplate.query(sql,
+                new MapSqlParameterSource("operadorId", operadorId),
+                new BeanPropertyRowMapper<>(Arma.class));
+    }
 
     public int delete(Integer id) {
         String sql = "DELETE FROM Arma WHERE ID_Arma = :id";

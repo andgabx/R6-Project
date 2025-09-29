@@ -7,10 +7,10 @@ import java.math.BigDecimal;
 public class Dados {
     private Integer id; // Mapeia Dados_PK_INT
     private Integer nivel;
-    private BigDecimal winrate;
+    private Double winrate;
     private String rankJogador;
-    private Float headshot;
-    private BigDecimal kd;
+    private Double headshot;
+    private Double kd;
     private String plataforma;
     private Integer horasJogadas;
     private String mainRole;

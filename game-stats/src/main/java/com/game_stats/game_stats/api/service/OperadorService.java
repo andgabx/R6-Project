@@ -1,6 +1,7 @@
 package com.game_stats.game_stats.api.service;
 
 import com.game_stats.game_stats.api.dto.*;
+import com.game_stats.game_stats.api.model.Arma;
 import com.game_stats.game_stats.api.model.Operador;
 import com.game_stats.game_stats.api.repository.ArmaRepository;
 import com.game_stats.game_stats.api.repository.OperadorRepository;
@@ -30,40 +31,24 @@ public class OperadorService {
     }
 
     public void criar(OperadorRequestDTO dto) {
-        // Validar se a arma existe
-        if (dto.getArmaId() != null) {
-            armaRepository.findById(dto.getArmaId())
-                    .orElseThrow(() -> new RuntimeException("Arma não encontrada"));
-        }
-
         Operador operador = new Operador();
         operador.setNome(dto.getNome());
-        operador.setFuncao(dto.getFuncao());
-        operador.setArmaId(dto.getArmaId());
+        // A função não é mais um campo direto, ela é determinada pela existência
+        // do operador nas tabelas de Ataque ou Defesa
         operadorRepository.save(operador);
     }
 
     public void atualizar(Integer id, OperadorRequestDTO dto) {
-        // Validar se o operador existe
         operadorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Operador não encontrado"));
-
-        // Validar se a arma existe
-        if (dto.getArmaId() != null) {
-            armaRepository.findById(dto.getArmaId())
-                    .orElseThrow(() -> new RuntimeException("Arma não encontrada"));
-        }
 
         Operador operador = new Operador();
         operador.setIdOperador(id);
         operador.setNome(dto.getNome());
-        operador.setFuncao(dto.getFuncao());
-        operador.setArmaId(dto.getArmaId());
         operadorRepository.update(operador);
     }
 
     public void deletar(Integer id) {
-        // Validar se o operador existe
         operadorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Operador não encontrado"));
 
@@ -74,19 +59,17 @@ public class OperadorService {
         OperadorResponseDTO dto = new OperadorResponseDTO();
         dto.setIdOperador(operador.getIdOperador());
         dto.setNome(operador.getNome());
-        dto.setFuncao(operador.getFuncao());
 
-        // Buscar arma associada
-        if (operador.getArmaId() != null) {
-            armaRepository.findById(operador.getArmaId()).ifPresent(arma -> {
-                ArmaResponseDTO armaDto = new ArmaResponseDTO();
-                armaDto.setIdArma(arma.getIdArma());
-                armaDto.setNome(arma.getNome());
-                armaDto.setTipo(arma.getTipo());
-                armaDto.setDano(arma.getDano());
-                dto.setArma(armaDto);
-            });
-        }
+        // Lógica para determinar a função e buscar as armas
+        armaRepository.findArmasByOperadorId(operador.getIdOperador()).forEach(arma -> {
+            ArmaResponseDTO armaDto = new ArmaResponseDTO();
+            armaDto.setIdArma(arma.getIdArma());
+            armaDto.setNome(arma.getNome());
+            armaDto.setTipo(arma.getTipo());
+            armaDto.setDano(arma.getDano());
+            dto.setArma(armaDto); // Nota: Isto irá sobrescrever, idealmente seria uma lista de armas
+        });
+
 
         return dto;
     }

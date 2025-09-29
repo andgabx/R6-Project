@@ -22,10 +22,10 @@ public class DadosRepository {
         Dados d = new Dados();
         d.setId(rs.getInt("Dados_PK_INT"));
         d.setNivel(rs.getInt("Nivel"));
-        d.setWinrate(rs.getBigDecimal("Winrate")); // Usar BigDecimal para DECIMAL
+        d.setWinrate(rs.getDouble("Winrate")); // Usar BigDecimal para DECIMAL
         d.setRankJogador(rs.getString("RankJogador"));
-        d.setHeadshot(rs.getFloat("Headshot")); // Usar Float para FLOAT
-        d.setKd(rs.getBigDecimal("KD")); // Usar BigDecimal para DECIMAL
+        d.setHeadshot(rs.getDouble("Headshot")); // Usar Float para FLOAT
+        d.setKd(rs.getDouble("KD")); // Usar BigDecimal para DECIMAL
 
         // --- Novos campos adicionados ---
         d.setPlataforma(rs.getString("Plataforma"));

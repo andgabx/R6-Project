@@ -152,8 +152,8 @@ INSERT INTO Jogador (Nickname, fk_Dados_Dados_PK_INT) VALUES
 INSERT INTO Ataque (fk_Operador_ID_Operador, Drone, Gadget_Unico_Ataque, Habilidade_Unica_Ataque) VALUES
                                                                                                       (1, 2, 'Twitch Drone', 'Dispara laser para destruir gadgets'),
                                                                                                       (5, 2, 'Breaching Round', 'Dispara um projétil explosivo'),
-                                                                                                      (16, 2, 'Breaching Hammer', 'Marreta para destruir superfícies'),
-                                                                                                      (11, 2, 'Skeleton Key', 'Espingarda acoplada para abrir paredes'),
+                                                                                                      (32, 2, 'Breaching Hammer', 'Marreta para destruir superfícies'), -- CORRIGIDO: ID 16 (Jäger) para 32 (Sledge)
+                                                                                                      (10, 2, 'Skeleton Key', 'Espingarda acoplada para abrir paredes'), -- CORRIGIDO: ID 11 (Frost) para 10 (Buck)
                                                                                                       (15, 2, 'KS79 LIFELINE', 'Lança granadas de concussão e impacto');
 
 INSERT INTO Defesa (fk_Operador_ID_Operador, Gadget_Unico_Defesa, Habilidade_Unica_Defesa, Preparo) VALUES
@@ -161,7 +161,9 @@ INSERT INTO Defesa (fk_Operador_ID_Operador, Gadget_Unico_Defesa, Habilidade_Uni
                                                                                                         (4, 'Armor Pack', 'Fornece coletes de armadura', 'Manter posição'),
                                                                                                         (7, 'Bandit Battery', 'Eletrifica superfícies de metal', 'Preparar armadilha'),
                                                                                                         (8, 'Mute Jammer', 'Bloqueia sinal de gadgets eletrônicos', 'Preparar armadilha'),
-                                                                                                        (9, 'Black Eye Camera', 'Câmeras adesivas que podem ser colocadas em qualquer lugar', 'Coletar informação');
+                                                                                                        (9, 'Black Eye Camera', 'Câmeras adesivas que podem ser colocadas em qualquer lugar', 'Coletar informação'),
+                                                                                                        (11, 'Welcome Mat', 'Armadilha mecânica para incapacitar inimigos', 'Preparar armadilha'), -- ADICIONADO: Frost (ID 11)
+                                                                                                        (16, 'Active Defense System', 'Destrói projéteis inimigos', 'Manter posição'); -- ADICIONADO: Jäger (ID 16)
 
 -- Associação Operador <-> Arma (Dados de exemplo)
 INSERT INTO Porta (fk_Operador_ID_Operador, fk_Arma_ID_Arma) VALUES
@@ -169,7 +171,7 @@ INSERT INTO Porta (fk_Operador_ID_Operador, fk_Arma_ID_Arma) VALUES
                                                                  (5, 1), (5, 2), -- Ash: R4-C, M590A1
                                                                  (2, 9), (2, 2), -- Doc: MP5, M590A1
                                                                  (4, 9), (4, 2), -- Rook: MP5, M590A1
-                                                                 (7, 9), (7, 2), -- Bandit: MP7, M590A1
+                                                                 (7, 3), (7, 2), -- Bandit: MP7 (CORRIGIDO de ID 9 para 3), M590A1
                                                                  (8, 9), (8, 2), -- Mute: MP5, M590A1
                                                                  (15, 4), (15, 5), -- Zofia: LMG-E, AK-12
                                                                  (29, 6), -- Mozzie: T-5 SMG
