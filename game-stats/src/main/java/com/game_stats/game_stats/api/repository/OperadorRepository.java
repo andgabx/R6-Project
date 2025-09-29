@@ -27,6 +27,7 @@ public class OperadorRepository {
                 ID_Operador as idOperador,
                 Nome as nome,
                 Velocidade as velocidade,
+                Funcao as funcao,
                 Blindagem as blindagem,
                 Unidade_Especial as unidadeEspecial
             FROM Operador

@@ -3,20 +3,23 @@ package com.game_stats.game_stats.api.dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class DadosRequestDTO {
-    @NotNull
+    private Integer id;
     private Integer nivel;
-
-    @NotNull
-    private Double winrate;
-
-    @NotNull
+    private BigDecimal winrate;
     private String rankJogador;
+    private Float headshot;
+    private BigDecimal kd;
+    private String plataforma;
+    private Integer horasJogadas;
+    private String mainRole;
+    private String preferenciaJogo;
 
-    @NotNull
-    private Double headshot;
-
-    @NotNull
-    private Double kd;
+    // Em vez de IDs, teremos os objetos completos dos mapas
+    private MapaResponseDTO mapaFavorito;
+    private MapaResponseDTO mapaMaisVitorias;
+    private MapaResponseDTO mapaMaisDerrotas;
 }

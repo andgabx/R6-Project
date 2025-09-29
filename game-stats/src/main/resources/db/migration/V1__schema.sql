@@ -54,7 +54,8 @@ CREATE TABLE Operador (
                           Nome VARCHAR(255) NOT NULL,
                           Velocidade INT,
                           Blindagem INT,
-                          Unidade_Especial VARCHAR(255)
+                          Unidade_Especial VARCHAR(255),
+                          Funcao VARCHAR(255) NOT NULL
 );
 
 -- Ataque

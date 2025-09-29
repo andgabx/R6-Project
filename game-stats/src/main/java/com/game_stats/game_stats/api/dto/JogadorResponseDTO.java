@@ -7,4 +7,5 @@ public class JogadorResponseDTO {
     private Integer idJogador;
     private String nickname;
     private DadosResponseDTO dados;
+    private OperadorResponseDTO operador;
 }

@@ -73,6 +73,7 @@ public class DadosController {
         d.setRankJogador(dto.getRankJogador());
         d.setHeadshot(dto.getHeadshot());
         d.setKd(dto.getKd());
+
         return d;
     }
 }
