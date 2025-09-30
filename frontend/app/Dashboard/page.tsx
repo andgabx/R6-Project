@@ -263,60 +263,7 @@ const DashboardPage = () => {
                     </ChartContainer>
                 </Card>
             </div>
-            <Image
-                src="/graficos/Bar/mediawinrateoperadoresataque.jpeg"
-                alt="Gráfico de Média de Winrate por Operador de Ataque"
-                width={500}
-                height={300}
-            />
-            <Image
-                src="/graficos/Bar/mediawinrateoperadoresdefesa.jpeg"
-                alt="Gráfico de Média de Winrate por Operador de Ataque"
-                width={500}
-                height={300}
-            />
-            <Image
-                src="/graficos/Bar/operadoresdeataquemaisescolhidos"
-                alt="Gráfico de Média de Winrate por Operador de Defesa"
-                width={500}
-                height={300}
-            />
-            <Image
-                src="/graficos/Bar/mediatempopartida.jpeg"
-                alt="Gráfico de Média de Tempo por Partida"
-                width={500}
-                height={300}
-            />
-            <Image
-                src="/graficos/Bar/mediatempopartida.jpeg"
-                alt="Gráfico de Média de Tempo por Partida"
-                width={500}
-                height={300}
-            />
-            <Image
-                src="/graficos/Bar/mediatempopartida.jpeg"
-                alt="Gráfico de Média de Tempo por Partida"
-                width={500}
-                height={300}
-            />
-            <Image
-                src="/graficos/Bar/mediatempopartida.jpeg"
-                alt="Gráfico de Média de Tempo por Partida"
-                width={500}
-                height={300}
-            />
-            <Image
-                src="/graficos/Bar/mediatempopartida.jpeg"
-                alt="Gráfico de Média de Tempo por Partida"
-                width={500}
-                height={300}
-            />
-            <Image
-                src="/graficos/Bar/mediatempopartida.jpeg"
-                alt="Gráfico de Média de Tempo por Partida"
-                width={500}
-                height={300}
-            />
+          
         </div>
     );
 };

@@ -22,8 +22,9 @@ public class JogadorRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private static final BeanPropertyRowMapper<Jogador> JOGADOR_ROW_MAPPER = new BeanPropertyRowMapper<>(Jogador.class);
+    private final OperadorRepository operadorRepository; // <-- 1. Injetar o novo repositório
 
-    // ... (métodos findAll, findById, findByNickname permanecem os mesmos) ...
+    // ... (todos os seus métodos de find, save, update, delete continuam aqui) ...
     public List<Jogador> findAll() {
         String sql = """
                 SELECT ID_Jogador            AS idJogador,
@@ -114,20 +115,30 @@ public class JogadorRepository {
         jdbcTemplate.update(sql, params);
     }
     
+    // --- MÉTODO CORRIGIDO ---
     public void addOperadorAtaque(Integer jogadorId, JogadorOperadorRequestDTO dto) {
+        // 2. Buscar o ID do operador pelo nome
+        Integer operadorId = operadorRepository.findIdByName(dto.getNomeOperador())
+                .orElseThrow(() -> new IllegalArgumentException("Operador de ataque '" + dto.getNomeOperador() + "' não encontrado."));
+
         String sql = "INSERT INTO Jogador_Op_Atk (fk_Jogador_ID_Jogador, fk_Operador_Ataque_ID, Winrate) VALUES (:jogadorId, :operadorId, :winrate)";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("jogadorId", jogadorId)
-                .addValue("operadorId", dto.getOperadorId())
+                .addValue("operadorId", operadorId) // 3. Usar o ID encontrado
                 .addValue("winrate", dto.getWinrate());
         jdbcTemplate.update(sql, params);
     }
 
+    // --- MÉTODO CORRIGIDO ---
     public void addOperadorDefesa(Integer jogadorId, JogadorOperadorRequestDTO dto) {
+        // 2. Buscar o ID do operador pelo nome
+        Integer operadorId = operadorRepository.findIdByName(dto.getNomeOperador())
+                .orElseThrow(() -> new IllegalArgumentException("Operador de defesa '" + dto.getNomeOperador() + "' não encontrado."));
+        
         String sql = "INSERT INTO Jogador_Op_Def (fk_Jogador_ID_Jogador, fk_Operador_Defesa_ID, Winrate) VALUES (:jogadorId, :operadorId, :winrate)";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("jogadorId", jogadorId)
-                .addValue("operadorId", dto.getOperadorId())
+                .addValue("operadorId", operadorId) // 3. Usar o ID encontrado
                 .addValue("winrate", dto.getWinrate());
         jdbcTemplate.update(sql, params);
     }
