@@ -1,14 +1,18 @@
 package com.game_stats.game_stats.api.repository;
 
 import com.game_stats.game_stats.api.dto.JogadorOperadorDTO;
-import com.game_stats.game_stats.api.dto.JogadorResponseDTO;
+import com.game_stats.game_stats.api.dto.JogadorOperadorRequestDTO;
 import com.game_stats.game_stats.api.model.Jogador;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,10 +21,9 @@ import java.util.Optional;
 public class JogadorRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private static final BeanPropertyRowMapper<Jogador> JOGADOR_ROW_MAPPER = new BeanPropertyRowMapper<>(Jogador.class);
 
-    private static final BeanPropertyRowMapper<Jogador> JOGADOR_ROW_MAPPER =
-            new BeanPropertyRowMapper<>(Jogador.class);
-
+    // ... (métodos findAll, findById, findByNickname permanecem os mesmos) ...
     public List<Jogador> findAll() {
         String sql = """
                 SELECT ID_Jogador            AS idJogador,
@@ -48,7 +51,6 @@ public class JogadorRepository {
                 .findFirst();
     }
     
-    // NOVO MÉTODO
     public List<JogadorOperadorDTO> findOperadoresAtaqueByJogadorId(Integer jogadorId) {
         String sql = """
             SELECT O.Nome AS nomeOperador, JOA.Winrate AS winrate
@@ -62,7 +64,6 @@ public class JogadorRepository {
                 new BeanPropertyRowMapper<>(JogadorOperadorDTO.class));
     }
 
-    // NOVO MÉTODO
     public List<JogadorOperadorDTO> findOperadoresDefesaByJogadorId(Integer jogadorId) {
         String sql = """
             SELECT O.Nome AS nomeOperador, JOD.Winrate AS winrate
@@ -93,36 +94,54 @@ public class JogadorRepository {
                 .stream()
                 .findFirst();
     }
-
-    public int save(Jogador jogador) {
-        String sql = """
-                INSERT INTO Jogador (Nickname, fk_Dados_Dados_PK_INT)
-                VALUES (:nickname, :dadosId)
-                """;
-
+    public Integer saveAndReturnId(Jogador jogador) {
+        String sql = "INSERT INTO Jogador (Nickname, fk_Dados_Dados_PK_INT) VALUES (:nickname, :dadosId)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("nickname", jogador.getNickname())
                 .addValue("dadosId", jogador.getDadosId());
 
-        return jdbcTemplate.update(sql, params);
+        jdbcTemplate.update(sql, params, keyHolder, new String[]{"ID_Jogador"});
+        return keyHolder.getKey() != null ? keyHolder.getKey().intValue() : null;
     }
 
-    public int update(Jogador jogador) {
-        String sql = """
-                UPDATE Jogador
-                   SET Nickname = :nickname,
-                       fk_Dados_Dados_PK_INT = :dadosId
-                 WHERE ID_Jogador = :idJogador
-                """;
-
+    public void update(Jogador jogador) {
+        String sql = "UPDATE Jogador SET Nickname = :nickname, fk_Dados_Dados_PK_INT = :dadosId WHERE ID_Jogador = :idJogador";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("idJogador", jogador.getIdJogador())
                 .addValue("nickname", jogador.getNickname())
                 .addValue("dadosId", jogador.getDadosId());
-
-        return jdbcTemplate.update(sql, params);
+        jdbcTemplate.update(sql, params);
+    }
+    
+    public void addOperadorAtaque(Integer jogadorId, JogadorOperadorRequestDTO dto) {
+        String sql = "INSERT INTO Jogador_Op_Atk (fk_Jogador_ID_Jogador, fk_Operador_Ataque_ID, Winrate) VALUES (:jogadorId, :operadorId, :winrate)";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("jogadorId", jogadorId)
+                .addValue("operadorId", dto.getOperadorId())
+                .addValue("winrate", dto.getWinrate());
+        jdbcTemplate.update(sql, params);
     }
 
+    public void addOperadorDefesa(Integer jogadorId, JogadorOperadorRequestDTO dto) {
+        String sql = "INSERT INTO Jogador_Op_Def (fk_Jogador_ID_Jogador, fk_Operador_Defesa_ID, Winrate) VALUES (:jogadorId, :operadorId, :winrate)";
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("jogadorId", jogadorId)
+                .addValue("operadorId", dto.getOperadorId())
+                .addValue("winrate", dto.getWinrate());
+        jdbcTemplate.update(sql, params);
+    }
+
+    public void clearOperadoresAtaque(Integer jogadorId) {
+        String sql = "DELETE FROM Jogador_Op_Atk WHERE fk_Jogador_ID_Jogador = :jogadorId";
+        jdbcTemplate.update(sql, new MapSqlParameterSource("jogadorId", jogadorId));
+    }
+
+    public void clearOperadoresDefesa(Integer jogadorId) {
+        String sql = "DELETE FROM Jogador_Op_Def WHERE fk_Jogador_ID_Jogador = :jogadorId";
+        jdbcTemplate.update(sql, new MapSqlParameterSource("jogadorId", jogadorId));
+    }
+    
     public int delete(Integer id) {
         String sql = """
                 DELETE FROM Jogador WHERE ID_Jogador = :id

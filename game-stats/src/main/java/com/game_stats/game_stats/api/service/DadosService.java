@@ -25,7 +25,11 @@ public class DadosService {
     }
 
     public Dados criar(Dados dados) {
-        return repository.save(dados);
+        // CORRIGIDO: O método foi alterado para saveAndReturnId, que retorna o ID gerado.
+        // O retorno do método foi ajustado para refletir o objeto salvo.
+        Integer id = repository.saveAndReturnId(dados);
+        dados.setId(id);
+        return dados;
     }
 
     public Dados atualizar(Integer id, Dados dados) {
