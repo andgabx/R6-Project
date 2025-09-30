@@ -43,28 +43,25 @@ public class JogadorController {
         return jogador.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
+    
     @PostMapping
     public ResponseEntity<JogadorResponseDTO> criarJogador(@Valid @RequestBody JogadorRequestDTO request) {
-        Jogador jogador = toModel(request);
-        JogadorResponseDTO criado = jogadorService.criarJogador(jogador);
+        JogadorResponseDTO criado = jogadorService.criarJogadorCompleto(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(criado);
-    }
-
-    @GetMapping("/minkd")
-    @Operation(summary = "Listar jogadores com kd acima de um valor determinado - FUNCIONAL")
-    public List<JogadorResponseDTO> listarPorKdMinimo(@RequestParam("kdMin") Double kdMinimo) {
-        return jogadorService.listarPorKdMinimo(kdMinimo);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<JogadorResponseDTO> atualizarJogador(
             @PathVariable Integer id,
             @Valid @RequestBody JogadorRequestDTO request) {
-
-        Jogador jogador = toModel(request);
-        JogadorResponseDTO atualizado = jogadorService.atualizarJogador(id, jogador);
+        JogadorResponseDTO atualizado = jogadorService.atualizarJogadorCompleto(id, request);
         return ResponseEntity.ok(atualizado);
+    }
+
+    @GetMapping("/minkd")
+    @Operation(summary = "Listar jogadores com kd acima de um valor determinado - FUNCIONAL")
+    public List<JogadorResponseDTO> listarPorKdMinimo(@RequestParam("kdMin") Double kdMinimo) {
+        return jogadorService.listarPorKdMinimo(kdMinimo);
     }
 
     @DeleteMapping("/{id}")
@@ -113,12 +110,5 @@ public class JogadorController {
         }
 
         return dto;
-    }
-
-    private Jogador toModel(JogadorRequestDTO dto) {
-        Jogador jogador = new Jogador();
-        jogador.setNickname(dto.getNickname());
-        jogador.setDadosId(dto.getDadosId());
-        return jogador;
     }
 }
