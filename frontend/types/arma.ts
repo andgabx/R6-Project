@@ -1,17 +1,12 @@
-// types/arma.ts
 export interface Arma {
-  idArma: number;
-  nome: string;
-  cadencia: number;
-  tipo: string;
-  dano: number;
-  capacidade: number;
+    idArma: number;
+    nome: string;
+    tipo: string;
+    dano: number;
 }
 
 export interface ArmaRequest {
-  nome: string;
-  cadencia: number;
-  tipo: string;
-  dano: number;
-  capacidade: number;
+    nome: string;
+    tipo: string;
+    dano: number;
 }

@@ -42,7 +42,7 @@ export default function HomePage() {
             description:
                 "Visão geral das estatísticas e métricas principais da plataforma",
             icon: BarChart3,
-            href: "/dashboard",
+            href: "/Dashboard",
             color: "text-primary",
             bgColor: "bg-primary/10",
             stats: "Análises em tempo real",
@@ -65,7 +65,7 @@ export default function HomePage() {
             href: "/operators",
             color: "text-chart-2",
             bgColor: "bg-chart-2/10",
-            stats: "60+ Operadores",
+            stats: "Explore os Operadores",
         },
         {
             title: "Arsenal",
@@ -78,7 +78,7 @@ export default function HomePage() {
             stats: "Armas & Acessórios",
         },
         {
-            title: "Partidas",
+            title: "Partidas (AINDA NÃO IMPLEMENTADO)",
             description:
                 "Histórico de partidas, mapas e análise de performance",
             icon: Trophy,
@@ -88,7 +88,7 @@ export default function HomePage() {
             stats: "Histórico completo",
         },
         {
-            title: "Mapas",
+            title: "Mapas (AINDA NÃO IMPLEMENTADO)",
             description:
                 "Informações detalhadas sobre todos os mapas competitivos",
             icon: Map,
@@ -155,39 +155,6 @@ export default function HomePage() {
                 </DialogContent>
             </Dialog>
 
-            {/* Header */}
-            <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-                <div className="container mx-auto px-4 py-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-primary/20">
-                                    <Shield className="h-8 w-8 text-primary" />
-                                </div>
-                                <div>
-                                    <h1 className="text-3xl font-bold text-balance">
-                                        R6 Stats Platform
-                                    </h1>
-                                    <p className="text-muted-foreground">
-                                        Rainbow Six Siege Analytics Hub
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <ThemeSwitcher />
-                            <Button
-                                variant="outline"
-                                className="gap-2 bg-transparent"
-                            >
-                                <Zap className="h-4 w-4" />
-                                Status: Online
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
             <main className="container mx-auto px-4 py-8">
                 {/* Hero Section */}
                 <div className="text-center mb-12">
@@ -202,7 +169,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                     {quickStats.map((stat, index) => (
                         <Card key={index} className="bg-card border-border">
                             <CardContent className="p-6">
@@ -224,7 +191,7 @@ export default function HomePage() {
                             </CardContent>
                         </Card>
                     ))}
-                </div>
+                </div> */}
 
                 {/* Navigation Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -277,11 +244,11 @@ export default function HomePage() {
                             <div className="flex items-center justify-center gap-2 mb-4">
                                 <Gamepad2 className="h-6 w-6 text-primary" />
                                 <h3 className="text-xl font-semibold">
-                                    Plataforma Completa
+                                    Plataforma em desenvolvimento
                                 </h3>
                             </div>
                             <p className="text-muted-foreground max-w-2xl mx-auto text-pretty">
-                                Esta plataforma oferece análise completa de
+                                Esta plataforma pretende oferecer análise completa de
                                 dados do Rainbow Six Siege, incluindo
                                 estatísticas de jogadores, informações de
                                 operadores, arsenal completo, histórico de
