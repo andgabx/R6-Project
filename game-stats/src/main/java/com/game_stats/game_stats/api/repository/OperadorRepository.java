@@ -5,6 +5,7 @@ import com.game_stats.game_stats.api.dto.OperadorPopularidadeDTO;
 import com.game_stats.game_stats.api.model.Ataque;
 import com.game_stats.game_stats.api.model.Defesa;
 import com.game_stats.game_stats.api.model.Operador;
+
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+
 public class OperadorRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -143,6 +145,16 @@ public class OperadorRepository {
         MapSqlParameterSource params = new MapSqlParameterSource("operatorName", operatorName);
 
         return jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(MelhorJogadorDTO.class))
+                .stream()
+                .findFirst();
+    }
+
+    // NOVO MÉTODO: Busca o ID de um operador pelo nome.
+    public Optional<Integer> findIdByName(String nome) {
+        String sql = "SELECT ID_Operador FROM Operador WHERE Nome = :nome";
+        MapSqlParameterSource params = new MapSqlParameterSource("nome", nome);
+
+        return jdbcTemplate.query(sql, params, (rs, rowNum) -> rs.getInt("ID_Operador"))
                 .stream()
                 .findFirst();
     }

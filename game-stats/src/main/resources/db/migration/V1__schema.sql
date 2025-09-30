@@ -85,8 +85,9 @@ CREATE TABLE Jogador_Op_Atk (
                                 PRIMARY KEY (fk_Jogador_ID_Jogador, fk_Operador_Ataque_ID),
                                 CONSTRAINT FK_Jogador_Op_Atk_Jogador FOREIGN KEY (fk_Jogador_ID_Jogador)
                                     REFERENCES Jogador(ID_Jogador) ON DELETE CASCADE,
-                                CONSTRAINT FK_Jogador_Op_Atk_Ataque FOREIGN KEY (fk_Operador_Ataque_ID)
-                                    REFERENCES Ataque(fk_Operador_ID_Operador) ON DELETE CASCADE
+                                -- LINHA CORRIGIDA
+                                CONSTRAINT FK_Jogador_Op_Atk_Operador FOREIGN KEY (fk_Operador_Ataque_ID)
+                                    REFERENCES Operador(ID_Operador) ON DELETE CASCADE
 );
 
 -- Nova Tabela: Jogador_Op_Def (Associação Jogador com Operador de Defesa e Winrate)
@@ -97,8 +98,9 @@ CREATE TABLE Jogador_Op_Def (
                                 PRIMARY KEY (fk_Jogador_ID_Jogador, fk_Operador_Defesa_ID),
                                 CONSTRAINT FK_Jogador_Op_Def_Jogador FOREIGN KEY (fk_Jogador_ID_Jogador)
                                     REFERENCES Jogador(ID_Jogador) ON DELETE CASCADE,
-                                CONSTRAINT FK_Jogador_Op_Def_Defesa FOREIGN KEY (fk_Operador_Defesa_ID)
-                                    REFERENCES Defesa(fk_Operador_ID_Operador) ON DELETE CASCADE
+                                -- LINHA CORRIGIDA
+                                CONSTRAINT FK_Jogador_Op_Def_Operador FOREIGN KEY (fk_Operador_Defesa_ID)
+                                    REFERENCES Operador(ID_Operador) ON DELETE CASCADE
 );
 
 -- Arma

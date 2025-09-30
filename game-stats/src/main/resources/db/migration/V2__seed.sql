@@ -32,52 +32,24 @@ INSERT INTO Arma (ID_Arma, Nome, Cadencia, Tipo, Dano, Capacidade) VALUES
 (22, 'AR-15.50', 1, 'Fuzil de Atirador', 62, 10);
 
 -- Mapas (Extraído dos dados)
-INSERT INTO Mapa (Nome) VALUES
-                            ('Clubhouse'),
-                            ('Villa'),
-                            ('Skyscraper'),
-                            ('Oregon'),
-                            ('Kafe Dostoyevsky'),
-                            ('Bank'),
-                            ('Chalet'),
-                            ('Coastline'),
-                            ('Consulate'),
-                            ('Border');
+INSERT INTO Mapa (ID_Mapa, Nome) VALUES
+(1, 'Clubhouse'), (2, 'Villa'), (3, 'Skyscraper'), (4, 'Oregon'),
+(5, 'Kafe Dostoyevsky'), (6, 'Bank'), (7, 'Chalet'), (8, 'Coastline'),
+(9, 'Consulate'), (10, 'Border');
 
--- Operadores (Extraído dos dados - Velocidade, Blindagem e Unidade são exemplos)
-INSERT INTO Operador (Nome, Velocidade, Blindagem, Unidade_Especial) VALUES
-                                                                         ('Twitch', 2, 2, 'GIGN'),
-                                                                         ('Doc', 1, 3, 'GIGN'),
-                                                                         ('Blackbeard', 2, 2, 'Navy SEALs'),
-                                                                         ('Rook', 1, 3, 'GIGN'),
-                                                                         ('Ash', 3, 1, 'FBI SWAT'),
-                                                                         ('Azami', 2, 2, 'SAT'),
-                                                                         ('Bandit', 3, 1, 'GSG 9'),
-                                                                         ('Mute', 2, 2, 'SAS'),
-                                                                         ('Valkyrie', 2, 2, 'Navy SEALs'),
-                                                                         ('Buck', 2, 2, 'JTF2'),
-                                                                         ('Frost', 2, 2, 'JTF2'),
-                                                                         ('Finka', 2, 2, 'Spetsnaz'),
-                                                                         ('Lion', 2, 2, 'GIGN'),
-                                                                         ('Ace', 2, 2, 'NIGHTHAVEN'),
-                                                                         ('Zofia', 2, 2, 'GROM'),
-                                                                         ('Jäger', 3, 1, 'GSG 9'),
-                                                                         ('Lesion', 2, 2, 'SDU'),
-                                                                         ('Caveira', 3, 1, 'BOPE'),
-                                                                         ('Nomad', 2, 2, 'GIGR'),
-                                                                         ('Aruni', 2, 2, 'NIGHTHAVEN'),
-                                                                         ('Iana', 2, 2, 'REU'),
-                                                                         ('Thorn', 2, 2, 'NIGHTHAVEN'),
-                                                                         ('Flores', 2, 2, 'N/A'),
-                                                                         ('Kapkan', 2, 2, 'Spetsnaz'),
-                                                                         ('Solis', 2, 2, 'N/A'),
-                                                                         ('Melusi', 3, 1, 'N/A'),
-                                                                         ('Maverick', 3, 1, 'N/A'),
-                                                                         ('Capitão', 3, 1, 'BOPE'),
-                                                                         ('Mozzie', 2, 2, 'SASR'),
-                                                                         ('Pulse', 3, 1, 'FBI SWAT'),
-                                                                         ('Hibana', 3, 1, 'SAT'),
-                                                                         ('Sledge', 2, 2, 'SAS');
+-- Operadores (Extraído dos dados)
+INSERT INTO Operador (ID_Operador, Nome, Velocidade, Blindagem, Unidade_Especial) VALUES
+(1, 'Twitch', 2, 2, 'GIGN'), (2, 'Doc', 1, 3, 'GIGN'), (3, 'Blackbeard', 2, 2, 'Navy SEALs'),
+(4, 'Rook', 1, 3, 'GIGN'), (5, 'Ash', 3, 1, 'FBI SWAT'), (6, 'Azami', 2, 2, 'SAT'),
+(7, 'Bandit', 3, 1, 'GSG 9'), (8, 'Mute', 2, 2, 'SAS'), (9, 'Valkyrie', 2, 2, 'Navy SEALs'),
+(10, 'Buck', 2, 2, 'JTF2'), (11, 'Frost', 2, 2, 'JTF2'), (12, 'Finka', 2, 2, 'Spetsnaz'),
+(13, 'Lion', 2, 2, 'GIGN'), (14, 'Ace', 2, 2, 'NIGHTHAVEN'), (15, 'Zofia', 2, 2, 'GROM'),
+(16, 'Jäger', 3, 1, 'GSG 9'), (17, 'Lesion', 2, 2, 'SDU'), (18, 'Caveira', 3, 1, 'BOPE'),
+(19, 'Nomad', 2, 2, 'GIGR'), (20, 'Aruni', 2, 2, 'NIGHTHAVEN'), (21, 'Iana', 2, 2, 'REU'),
+(22, 'Thorn', 2, 2, 'NIGHTHAVEN'), (23, 'Flores', 2, 2, 'N/A'), (24, 'Kapkan', 2, 2, 'Spetsnaz'),
+(25, 'Solis', 2, 2, 'N/A'), (26, 'Melusi', 3, 1, 'N/A'), (27, 'Maverick', 3, 1, 'N/A'),
+(28, 'Capitão', 3, 1, 'BOPE'), (29, 'Mozzie', 2, 2, 'SASR'), (30, 'Pulse', 3, 1, 'FBI SWAT'),
+(31, 'Hibana', 3, 1, 'SAT'), (32, 'Sledge', 2, 2, 'SAS');
 
 -- Dados (Estatísticas de cada jogador extraídas dos dados)
 INSERT INTO Dados (Dados_PK_INT, Nivel, Winrate, RankJogador, Headshot, KD, Plataforma, Horas_jogadas, Main_role, Preferencia_jogo, fk_Mapa_favorito, fk_Mapa_mais_vitorias, fk_Mapa_mais_derrotas) VALUES
