@@ -58,7 +58,7 @@ export default function HomePage() {
             stats: "Perfis completos",
         },
         {
-            title: "Operadores",
+            title: "Operadores (AINDA NÃO IMPLEMENTADO)",
             description:
                 "Explore habilidades, estatísticas e loadouts dos operadores",
             icon: Shield,
