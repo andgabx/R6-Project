@@ -145,8 +145,8 @@ CREATE TABLE Honra (
                        fk_Jogador_Destinatario INT NOT NULL,
                        fk_Jogador_Remetente INT NOT NULL,
                        DataHora DATETIME NOT NULL,
-                       CONSTRAINT FK_Honra_Dest FOREIGN KEY (fk_Jogador_Destinatario) REFERENCES Jogador(ID_Jogador),
-                       CONSTRAINT FK_Honra_Rem FOREIGN KEY (fk_Jogador_Remetente) REFERENCES Jogador(ID_Jogador)
+                       CONSTRAINT FK_Honra_Dest FOREIGN KEY (fk_Jogador_Destinatario) REFERENCES Jogador(ID_Jogador) ON DELETE CASCADE,
+                       CONSTRAINT FK_Honra_Rem FOREIGN KEY (fk_Jogador_Remetente) REFERENCES Jogador(ID_Jogador) ON DELETE CASCADE
 );
 
 -- Tem (Time - Jogador)
