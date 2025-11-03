@@ -1,14 +1,11 @@
--- V1__schema.sql CORRIGIDO
 CREATE SCHEMA IF NOT EXISTS game_stats DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE game_stats;
 
--- Mapa
 CREATE TABLE Mapa (
                       ID_Mapa INT AUTO_INCREMENT PRIMARY KEY,
                       Nome VARCHAR(255) NOT NULL
 );
 
--- Modo_de_Jogo
 CREATE TABLE Modo_de_Jogo (
                               ID_Modo_de_Jogo INT AUTO_INCREMENT PRIMARY KEY,
                               Nome VARCHAR(255) NOT NULL,
@@ -16,21 +13,25 @@ CREATE TABLE Modo_de_Jogo (
                               Tipo VARCHAR(20)
 );
 
--- Dados
 CREATE TABLE Dados (
                        Dados_PK_INT INT AUTO_INCREMENT PRIMARY KEY,
-                       Nivel INT,
-                       Winrate DECIMAL(5,2),
-                       RankJogador VARCHAR(20),
+                       Nivel INT DEFAULT 1,
+                       Winrate DECIMAL(5,2) DEFAULT 0.00,
+                       RankJogador VARCHAR(20) DEFAULT 'Não Classificado',
                        Headshot FLOAT,
-                       KD DECIMAL(5,2),
+                       KD DECIMAL(5,2) DEFAULT 0.00,
                        Plataforma VARCHAR(50),
-                       Horas_jogadas INT,
+                       Horas_jogadas INT DEFAULT 0,
                        Main_role VARCHAR(100),
                        Preferencia_jogo VARCHAR(100),
                        fk_Mapa_favorito INT,
                        fk_Mapa_mais_vitorias INT,
                        fk_Mapa_mais_derrotas INT,
+
+                       CONSTRAINT CHK_Nivel_Positivo CHECK (Nivel >= 0),
+                       CONSTRAINT CHK_Winrate_Range CHECK (Winrate BETWEEN 0.00 AND 100.00),
+                       CONSTRAINT CHK_Horas_Positivas CHECK (Horas_jogadas >= 0),
+
                        CONSTRAINT FK_Dados_Mapa_Favorito FOREIGN KEY (fk_Mapa_favorito)
                            REFERENCES Mapa(ID_Mapa) ON DELETE SET NULL,
                        CONSTRAINT FK_Dados_Mapa_Vitorias FOREIGN KEY (fk_Mapa_mais_vitorias)
@@ -39,7 +40,6 @@ CREATE TABLE Dados (
                            REFERENCES Mapa(ID_Mapa) ON DELETE SET NULL
 );
 
--- Jogador
 CREATE TABLE Jogador (
                          ID_Jogador INT AUTO_INCREMENT PRIMARY KEY,
                          Nickname VARCHAR(255) NOT NULL UNIQUE,
@@ -48,16 +48,17 @@ CREATE TABLE Jogador (
                              REFERENCES Dados(Dados_PK_INT) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
--- Operador
 CREATE TABLE Operador (
                           ID_Operador INT AUTO_INCREMENT PRIMARY KEY,
                           Nome VARCHAR(255) NOT NULL,
                           Velocidade INT,
                           Blindagem INT,
-                          Unidade_Especial VARCHAR(255)
+                          Unidade_Especial VARCHAR(255),
+
+                          CONSTRAINT CHK_Velocidade_Valida CHECK (Velocidade IN (1, 2, 3)),
+                          CONSTRAINT CHK_Blindagem_Valida CHECK (Blindagem IN (1, 2, 3))
 );
 
--- Ataque
 CREATE TABLE Ataque (
                         fk_Operador_ID_Operador INT PRIMARY KEY,
                         Drone INT,
@@ -67,7 +68,6 @@ CREATE TABLE Ataque (
                             REFERENCES Operador(ID_Operador) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Defesa
 CREATE TABLE Defesa (
                         fk_Operador_ID_Operador INT PRIMARY KEY,
                         Gadget_Unico_Defesa VARCHAR(255),
@@ -77,7 +77,6 @@ CREATE TABLE Defesa (
                             REFERENCES Operador(ID_Operador) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Jogador_Op_Atk
 CREATE TABLE Jogador_Op_Atk (
                                 fk_Jogador_ID_Jogador INT NOT NULL,
                                 fk_Operador_Ataque_ID INT NOT NULL,
@@ -89,7 +88,6 @@ CREATE TABLE Jogador_Op_Atk (
                                     REFERENCES Operador(ID_Operador) ON DELETE CASCADE
 );
 
--- Jogador_Op_Def
 CREATE TABLE Jogador_Op_Def (
                                 fk_Jogador_ID_Jogador INT NOT NULL,
                                 fk_Operador_Defesa_ID INT NOT NULL,
@@ -101,7 +99,6 @@ CREATE TABLE Jogador_Op_Def (
                                     REFERENCES Operador(ID_Operador) ON DELETE CASCADE
 );
 
--- Arma
 CREATE TABLE Arma (
                       ID_Arma INT AUTO_INCREMENT PRIMARY KEY,
                       Nome VARCHAR(255) NOT NULL,
@@ -111,14 +108,12 @@ CREATE TABLE Arma (
                       Capacidade INT
 );
 
--- Acessorio
 CREATE TABLE Acessorio (
                            ID_Acessorio INT AUTO_INCREMENT PRIMARY KEY,
                            Nome VARCHAR(255) NOT NULL,
                            Tipo VARCHAR(100)
 );
 
--- Partida
 CREATE TABLE Partida (
                          ID_Partida INT AUTO_INCREMENT PRIMARY KEY,
                          Resultado VARCHAR(50),
@@ -129,16 +124,11 @@ CREATE TABLE Partida (
                          CONSTRAINT FK_Partida_Modo FOREIGN KEY (fk_Modo_de_Jogo_ID_Modo_de_Jogo) REFERENCES Modo_de_Jogo(ID_Modo_de_Jogo)
 );
 
--- ######################################################
--- ## TABELA 'Time' CORRIGIDA BASEADA NO PONTO 4
--- ######################################################
 CREATE TABLE Time (
                       ID_Time INT AUTO_INCREMENT PRIMARY KEY,
-                      Nome VARCHAR(255) NOT NULL UNIQUE -- Adicionado Nome, pois um time deve ter um nome
-    -- Removida a 'fk_Partida_ID_Partida'
+                      Nome VARCHAR(255) NOT NULL UNIQUE
 );
 
--- Honra
 CREATE TABLE Honra (
                        ID_Honra INT AUTO_INCREMENT PRIMARY KEY,
                        Tipo VARCHAR(100),
@@ -149,7 +139,6 @@ CREATE TABLE Honra (
                        CONSTRAINT FK_Honra_Rem FOREIGN KEY (fk_Jogador_Remetente) REFERENCES Jogador(ID_Jogador) ON DELETE CASCADE
 );
 
--- Tem (Time - Jogador)
 CREATE TABLE Tem (
                      fk_Time_ID_Time INT NOT NULL,
                      fk_Jogador_ID_Jogador INT NOT NULL,
@@ -158,7 +147,6 @@ CREATE TABLE Tem (
                      CONSTRAINT FK_Tem_Jogador FOREIGN KEY (fk_Jogador_ID_Jogador) REFERENCES Jogador(ID_Jogador) ON DELETE CASCADE
 );
 
--- Participa (Partida - Time)
 CREATE TABLE Participa (
                            fk_Partida_ID_Partida INT NOT NULL,
                            fk_Time_ID_Time INT NOT NULL,
@@ -167,7 +155,6 @@ CREATE TABLE Participa (
                            CONSTRAINT FK_Participa_Time FOREIGN KEY (fk_Time_ID_Time) REFERENCES Time(ID_Time) ON DELETE CASCADE
 );
 
--- Porta (Operador - Arma)
 CREATE TABLE Porta (
                        fk_Operador_ID_Operador INT NOT NULL,
                        fk_Arma_ID_Arma INT NOT NULL,
@@ -176,7 +163,6 @@ CREATE TABLE Porta (
                        CONSTRAINT FK_Porta_Arma FOREIGN KEY (fk_Arma_ID_Arma) REFERENCES Arma(ID_Arma) ON DELETE CASCADE
 );
 
--- Contem (Arma - Acessorio)
 CREATE TABLE Contem (
                         fk_Arma_ID_Arma INT NOT NULL,
                         fk_Acessorio_ID_Acessorio INT NOT NULL,
