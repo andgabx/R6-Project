@@ -1,7 +1,6 @@
 package com.game_stats.game_stats.api.model;
 
 import lombok.Data;
-import java.math.BigDecimal;
 
 @Data
 public class Dados {

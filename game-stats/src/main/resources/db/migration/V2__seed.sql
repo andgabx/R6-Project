@@ -1,198 +1,143 @@
--- V2__seed.sql
+-- Remove dados existentes para evitar conflitos de ID
+TRUNCATE TABLE jogador, time, operador, ataque, defesa, arma, operador_arma, modo_de_jogo, mapa, partida, participa, dados RESTART IDENTITY CASCADE;
 
--- Modos de Jogo (Dados estáticos de exemplo)
-INSERT INTO Modo_de_Jogo (Nome, Descricao, Tipo) VALUES
-                                                     ('Casual', 'Modo de jogo rápido sem impacto no ranking', 'PVP'),
-                                                     ('Competitivo', 'Modo ranqueado com sistema de pontos', 'PVP'),
-                                                     ('Deathmatch', 'Aquecimento com foco em trocação', 'PVP');
+-- Inserir 30 Jogadores
+INSERT INTO jogador (nome, nivel, patente) VALUES
+('AceKiller', 150, 'Diamante'), ('BlitzMain', 89, 'Ouro II'), ('CaveiraHunter', 210, 'Platina I'),
+('DocSavior', 120, 'Ouro III'), ('EchoIntel', 300, 'Diamante'), ('FuzeHostage', 50, 'Cobre V'),
+('GlazSniper', 170, 'Prata I'), ('HibanaBreech', 220, 'Platina II'), ('IanaGemini', 130, 'Ouro I'),
+('JagerADS', 400, 'Campeão'), ('KapkanTrapper', 110, 'Prata III'), ('LionScanner', 90, 'Bronze II'),
+('MiraWindow', 250, 'Platina III'), ('NokkStealth', 140, 'Ouro II'), ('OsaShield', 70, 'Prata V'),
+('PulseSensor', 180, 'Ouro I'), ('Quantum', 190, 'Platina II'), ('RookArmor', 60, 'Bronze I'),
+('SledgeHammer', 230, 'Diamante'), ('ThatcherEMP', 270, 'Platina I'), ('UbiFan', 10, 'Cobre V'),
+('VigilGhost', 160, 'Ouro III'), ('WardenGlasses', 80, 'Prata II'), ('X-Factor', 310, 'Campeão'),
+('YingFlash', 100, 'Prata IV'), ('ZeroCam', 200, 'Platina III'), ('ShadowR6', 125, 'Ouro II'),
+('ViperStrike', 240, 'Platina I'), ('R6Pro', 350, 'Campeão'), ('Newbie123', 5, 'Cobre V');
 
--- Armas (Dados estáticos de exemplo)
-INSERT INTO Arma (ID_Arma, Nome, Cadencia, Tipo, Dano, Capacidade) VALUES
-(1, 'R4-C', 860, 'Rifle de Assalto', 39, 30),
-(2, 'M590A1', 180, 'Espingarda', 48, 7),
-(3, 'MP7', 900, 'Submetralhadora', 32, 30),
-(4, 'LMG-E', 900, 'Metralhadora Leve', 41, 150),
-(5, 'AK-12', 850, 'Rifle de Assalto', 45, 30),
-(6, 'T-5 SMG', 900, 'Submetralhadora', 28, 30),
-(7, 'F2', 980, 'Rifle de Assalto', 37, 25),
-(8, 'UMP45', 600, 'Submetralhadora', 38, 25),
-(9, 'MP5', 800, 'Submetralhadora', 27, 30),
-(10, 'P90', 970, 'Submetralhadora', 22, 50),
-(11, 'SCAR-H', 550, 'Fuzil de Batalha', 49, 20),
-(12, 'G36C', 780, 'Rifle de Assalto', 38, 30),
-(13, '9mm C1', 575, 'Submetralhadora', 45, 33),
-(14, 'C8-SFW', 837, 'Rifle de Assalto', 40, 30),
-(15, '416-C Carbine', 740, 'Carabina', 43, 30),
-(16, 'M870', 100, 'Espingarda', 60, 7),
-(17, '9x19VSN', 750, 'Submetralhadora', 34, 30),
-(18, 'M12', 550, 'Submetralhadora', 40, 30),
-(19, 'PARA-308', 650, 'Rifle de Assalto', 47, 25),
-(20, 'Commando 9', 780, 'Submetralhadora', 36, 25),
-(21, 'P10 RONI', 960, 'Submetralhadora', 26, 19),
-(22, 'AR-15.50', 1, 'Fuzil de Atirador', 62, 10);
+-- Inserir 30 Times
+INSERT INTO time (nome) VALUES
+('G2 Esports'), ('Team SoloMid'), ('Ninjas in Pyjamas'), ('FaZe Clan'), ('Team Liquid'),
+('Spacestation Gaming'), ('BDS Esport'), ('DarkZero Esports'), ('MiBR'), ('Virtus.pro'),
+('Team Empire'), ('Fnatic'), ('Chaos Esports Club'), ('PENTA Sports'), ('Evil Geniuses'),
+('Rogue'), ('Team Secret'), ('Cloud9'), ('Natus Vincere'), ('Black Dragons'), ('w7m Esports'),
+('FURIA Esports'), ('Team oNe eSports'), ('INTZ e-Sports'), ('Santos e-Sports'), ('Alpha Pack'),
+('Bravo Six'), ('Delta Force R6'), ('Cyber Athletes'), ('Vortex Gaming');
 
--- Mapas (Extraído dos dados)
-INSERT INTO Mapa (ID_Mapa, Nome) VALUES
-(1, 'Clubhouse'), (2, 'Villa'), (3, 'Skyscraper'), (4, 'Oregon'),
-(5, 'Kafe Dostoyevsky'), (6, 'Bank'), (7, 'Chalet'), (8, 'Coastline'),
-(9, 'Consulate'), (10, 'Border');
+-- Inserir 30 Modos de Jogo
+INSERT INTO modo_de_jogo (nome, descricao) VALUES
+('Bomba', 'Atacantes plantam o desativador, Defensores protegem as bombas.'),
+('Proteger Área', 'Atacantes capturam a sala, Defensores impedem a captura.'),
+('Refém', 'Atacantes resgatam o refém, Defensores protegem o refém.'),
+('Mata-Mata em Equipe', 'Combate puro para aquecimento.'),
+('Arcade: Golden Gun', 'Um tiro, uma morte.'), ('Arcade: Headshots Only', 'Apenas tiros na cabeça causam dano.'),
+('Ranqueado', 'Modo competitivo principal.'), ('Standard', 'Modo casual com regras de ranqueado.'),
+('Novo Recruta', 'Apenas para jogadores abaixo do nível 50.'), ('Evento: Outbreak', 'Modo PvE contra infectados.'),
+('Evento: Showdown', 'Modo 3v3 no Forte da Verdade.'), ('Evento: Doktor''s Curse', 'Modo esconde-esconde de Halloween.'),
+('Evento: M.U.T.E. Protocol', 'Defensores viajam por câmeras.'), ('Evento: Rengoku', 'Evento temático do Japão.'),
+('Treinamento: Caça-Terrorista', 'Modo PvE clássico.'), ('Treinamento: Situações', 'Cenários de tutorial.'),
+('Personalizado', 'Jogo com regras customizadas.'), ('Arcade: Sugar Fright', 'Evento de Halloween com coleta de doces.'),
+('Arcade: Atiradores de Elite', 'Apenas rifles de precisão.'), ('Evento: Apocalipse', 'Modo com controle de usina.'),
+('Evento: Containment', 'Evento temático de Extraction.'), ('Arcade: TDM - Sem Habilidade', 'Mata-Mata sem habilidades de operador.'),
+('Modo de Teste 1', 'Modo em desenvolvimento A.'), ('Modo de Teste 2', 'Modo em desenvolvimento B.'),
+('Modo de Teste 3', 'Modo em desenvolvimento C.'), ('Modo de Teste 4', 'Modo em desenvolvimento D.'),
+('Modo de Teste 5', 'Modo em desenvolvimento E.'), ('Modo de Teste 6', 'Modo em desenvolvimento F.'),
+('Modo de Teste 7', 'Modo em desenvolvimento G.'), ('Modo de Teste 8', 'Modo em desenvolvimento H.');
 
--- Operadores (Extraído dos dados)
-INSERT INTO Operador (ID_Operador, Nome, Velocidade, Blindagem, Unidade_Especial) VALUES
-(1, 'Twitch', 2, 2, 'GIGN'), (2, 'Doc', 1, 3, 'GIGN'), (3, 'Blackbeard', 2, 2, 'Navy SEALs'),
-(4, 'Rook', 1, 3, 'GIGN'), (5, 'Ash', 3, 1, 'FBI SWAT'), (6, 'Azami', 2, 2, 'SAT'),
-(7, 'Bandit', 3, 1, 'GSG 9'), (8, 'Mute', 2, 2, 'SAS'), (9, 'Valkyrie', 2, 2, 'Navy SEALs'),
-(10, 'Buck', 2, 2, 'JTF2'), (11, 'Frost', 2, 2, 'JTF2'), (12, 'Finka', 2, 2, 'Spetsnaz'),
-(13, 'Lion', 2, 2, 'GIGN'), (14, 'Ace', 2, 2, 'NIGHTHAVEN'), (15, 'Zofia', 2, 2, 'GROM'),
-(16, 'Jäger', 3, 1, 'GSG 9'), (17, 'Lesion', 2, 2, 'SDU'), (18, 'Caveira', 3, 1, 'BOPE'),
-(19, 'Nomad', 2, 2, 'GIGR'), (20, 'Aruni', 2, 2, 'NIGHTHAVEN'), (21, 'Iana', 2, 2, 'REU'),
-(22, 'Thorn', 2, 2, 'NIGHTHAVEN'), (23, 'Flores', 2, 2, 'N/A'), (24, 'Kapkan', 2, 2, 'Spetsnaz'),
-(25, 'Solis', 2, 2, 'N/A'), (26, 'Melusi', 3, 1, 'N/A'), (27, 'Maverick', 3, 1, 'N/A'),
-(28, 'Capitão', 3, 1, 'BOPE'), (29, 'Mozzie', 2, 2, 'SASR'), (30, 'Pulse', 3, 1, 'FBI SWAT'),
-(31, 'Hibana', 3, 1, 'SAT'), (32, 'Sledge', 2, 2, 'SAS');
+-- Inserir 30 Mapas
+INSERT INTO mapa (nome) VALUES
+('Banco'), ('Fronteira'), ('Casa de Campo'), ('Litoral'), ('Consulado'), ('Favela'), ('Fortaleza'),
+('Hereford (Novo)'), ('Arranha-Céu (Novo)'), ('Canal (Novo)'), ('Kafe Dostoyevsky'), ('Oregon (Novo)'),
+('Outback (Novo)'), ('Parque Temático (Novo)'), ('Arranha-Céu'), ('Torre'), ('Vila'), ('Iate'),
+('Nighthaven Labs'), ('Covil'), ('Esmeralda'), ('Estádio (Ranqueado)'), ('Casa (Ranqueado)'),
+('Avião (Casual)'), ('Base Hereford (Antiga)'), ('Universidade Bartlett'), ('Fábrica (TDM)'),
+('Arena (TDM)'), ('Mapa de Evento 1'), ('Mapa de Evento 2');
 
--- Dados (Estatísticas de cada jogador extraídas dos dados)
-INSERT INTO Dados (Dados_PK_INT, Nivel, Winrate, RankJogador, Headshot, KD, Plataforma, Horas_jogadas, Main_role, Preferencia_jogo, fk_Mapa_favorito, fk_Mapa_mais_vitorias, fk_Mapa_mais_derrotas) VALUES
-(1, 751, 95.5, 'Diamond V', 44.5, 1.21, 'Playstation', 751, 'Support', 'Duo', 1, 1, 2),
-(2, 50, 44.5, 'Bronze V', 34.5, 0.6, 'Playstation', 50, 'Anchor', 'Squad', 1, 1, 3),
-(3, 3501, 64.5, 'Champion', 54.5, 1.41, 'PC', 3501, 'Entry', 'Solo', 4, 4, 5),
-(4, 751, 64.5, 'Diamond V', 54.5, 1.41, 'Playstation', 751, 'Entry', 'Duo', 1, 1, 3),
-(5, 2501, 54.5, 'Champion', 44.5, 1.41, 'PC', 2501, 'Entry', 'Solo', 1, 1, 2),
-(6, 2501, 54.5, 'Diamond I', 44.5, 1.41, 'PC', 2501, 'Support', 'Duo', 6, 7, 3),
-(7, 301, 44.5, 'Platinum II', 44.5, 0.81, 'Xbox', 301, 'Entry', 'Solo', 7, 7, 6),
-(8, 1501, 54.5, 'Gold II', 54.5, 0.81, 'PC', 1501, 'Entry', 'Squad', 4, 3, 6),
-(9, 1501, 64.5, 'Gold V', 44.5, 1.01, 'Playstation', 1501, 'Anchor', 'Squad', 4, 4, 6),
-(10, 4500, 54.5, 'Gold V', 54.5, 0.81, 'PC', 4500, 'Support', 'Duo', 7, 8, 4),
-(11, 2501, 44.5, 'Bronze V', 54.5, 0.81, 'PC', 2501, 'Support', 'Squad', 3, 1, 9),
-(12, 301, 54.5, 'Silver II', 44.5, 1.01, 'Xbox', 301, 'Flex', 'Solo', 2, 2, 4),
-(13, 1501, 54.5, 'Bronze III', 44.5, 1.41, 'PC', 1501, 'Flex', 'Solo', 2, 8, 1),
-(14, 301, 44.5, 'Bronze I', 44.5, 0.81, 'Playstation', 301, 'Anchor', 'Solo', 6, 6, 1),
-(15, 3501, 44.5, 'Bronze V', 54.5, 0.6, 'PC', 3501, 'Flex', 'Solo', 10, 4, 8),
-(16, 2501, 54.5, 'Platinum II', 64.5, 1.21, 'Playstation', 2501, 'Entry', 'Squad', 8, 8, 3),
-(17, 3501, 54.5, 'Copper I', 54.5, 1.41, 'Xbox', 3501, 'Flex', 'Solo', 1, 10, 4),
-(18, 1501, 54.5, 'Bronze III', 54.5, 1.21, 'Xbox', 1501, 'Roamer', 'Squad', 9, 9, 2),
-(19, 751, 44.5, 'Gold I', 44.5, 0.81, 'PC', 751, 'Entry', 'Duo', 8, 8, 7),
-(20, 301, 54.5, 'Gold II', 54.5, 1.01, 'PC', 301, 'Support', 'Duo', 5, 6, 2),
-(21, 1501, 44.5, 'Gold II', 44.5, 1.01, 'Xbox', 1501, 'Support', 'Squad', 8, 2, 10),
-(22, 4500, 54.5, 'Gold II', 44.5, 1.01, 'PC', 4500, 'Entry', 'Duo', 7, 1, 8),
-(23, 1501, 44.5, 'Gold I', 24.5, 0.81, 'PC', 1501, 'Flex', 'Duo', 6, 4, 1),
-(24, 301, 54.5, 'Platinum V', 44.5, 1.21, 'PC', 301, 'Roamer', 'Duo', 6, 8, 5),
-(25, 50, 54.5, 'Platinum IV', 54.5, 1.41, 'PC', 50, 'Roamer', 'Duo', 6, 9, 7),
-(26, 50, 54.5, 'Silver II', 34.5, 0.81, 'Xbox', 50, 'Anchor', 'Solo', 1, 10, 4),
-(27, 2501, 74.5, 'Silver II', 44.5, 1.41, 'Xbox', 2501, 'Anchor', 'Solo', 6, 8, 1),
-(28, 2501, 34.5, 'Silver V', 44.5, 1.21, 'Xbox', 2501, 'Roamer', 'Duo', 5, 1, 3),
-(29, 4500, 44.5, 'Copper V', 14.5, 0.6, 'Xbox', 4500, 'Anchor', 'Duo', 6, 6, 4),
-(30, 4500, 95.5, 'Champion', 90.0, 2.01, 'Xbox', 4500, 'Entry', 'Solo', 3, 3, 2),
-(31, 1501, 34.5, 'Silver V', 74.5, 1.21, 'Xbox', 1501, 'Support', 'Solo', 1, 4, 2),
-(32, 2501, 85.0, 'Champion', 74.5, 2.01, 'PC', 2501, 'Flex', 'Duo', 6, 8, 5),
-(33, 50, 95.5, 'Champion', 90.0, 2.01, 'Playstation', 50, 'Entry', 'Duo', 5, 5, 2),
-(34, 301, 54.5, 'Copper I', 24.5, 1.01, 'Playstation', 301, 'Support', 'Solo', 1, 4, 3),
-(35, 1501, 74.5, 'Diamond II', 64.5, 1.61, 'Playstation', 1501, 'Anchor', 'Duo', 4, 4, 2),
-(36, 301, 44.5, 'Bronze III', 24.5, 0.81, 'Xbox', 301, 'Flex', 'Duo', 7, 5, 3),
-(37, 751, 44.5, 'Gold IV', 54.5, 1.21, 'PC', 751, 'Flex', 'Duo', 6, 4, 2),
-(38, 751, 74.5, 'Diamond I', 90.0, 1.61, 'PC', 751, 'Flex', 'Solo', 2, 7, 3);
+-- Inserir 30 Armas
+INSERT INTO arma (nome, tipo, dano) VALUES
+('R4-C', 'Rifle de Assalto', 39), ('MP5', 'Submetralhadora', 27), ('M590A1', 'Espingarda', 48),
+('416-C Carbine', 'Rifle de Assalto', 38), ('L85A2', 'Rifle de Assalto', 47), ('SMG-11', 'Submetralhadora', 35),
+('G36C', 'Rifle de Assalto', 38), ('Vector .45 ACP', 'Submetralhadora', 23), ('MP7', 'Submetralhadora', 32),
+('AK-12', 'Rifle de Assalto', 45), ('9x19VSN', 'Submetralhadora', 34), ('SPEAR .308', 'Rifle de Assalto', 42),
+('P10 RONI', 'Submetralhadora', 26), ('Commando 9', 'Rifle de Assalto', 36), ('ALDA 5.56', 'Metralhadora Leve', 35),
+('TCSG12', 'Espingarda (Slug)', 63), ('F2', 'Rifle de Assalto', 37), ('MPX', 'Submetralhadora', 26),
+('C8-SFW', 'Rifle de Assalto', 40), ('M762', 'Rifle de Assalto', 45), ('K1A', 'Submetralhadora', 36),
+('Mx4 Storm', 'Submetralhadora', 26), ('AUG A2', 'Rifle de Assalto', 42), ('P90', 'Submetralhadora', 22),
+('SC3000K', 'Rifle de Assalto', 45), ('ARX200', 'Rifle de Assalto', 47), ('FMG-9', 'Submetralhadora', 34),
+('M4', 'Rifle de Assalto', 44), ('CSRX 300', 'Rifle de Precisão', 97), ('Bailiff 410', 'Revólver (Espingarda)', 30);
 
--- Jogadores (Extraído dos dados)
-INSERT INTO Jogador (ID_Jogador, Nickname, fk_Dados_Dados_PK_INT) VALUES
-(1, 'CHONP0964711_', 1), (2, 'rx_marco_rx', 2), (3, 'walsh', 3), (4, 'EstEufE23', 4), (5, 'Maath1910', 5),
-(6, 'AuxilioDsempreg', 6), (7, 'Vuiuu', 7), (8, 'twitchbuIIys', 8), (9, 'YxziiDZ', 9), (10, 'Skish04', 10),
-(11, 'Pastipelis', 11), (12, 'Epicgamer6481', 12), (13, 'DONTDOWEEDPOT', 13), (14, 'Bluntxzsz', 14),
-(15, 'Vermouth599', 15), (16, 'ibafilho09', 16), (17, 'BlitzBlindMe', 17), (18, 'sheld__', 18),
-(19, 'F1nalD3V1L', 19), (20, 'matrix.bray', 20), (21, 'Coca-M', 21), (22, 'Monsterboss01', 22),
-(23, 'Marcolina', 23),(24, 'ILGELATAIO.', 24), (25, 'MakeAwishKid._F', 25), (26, 'xiaoxueseng233', 26),
-(27, 'KUNAM4ta', 27),(28, 'LUffyWolf', 28), (29, 'SeTuLeuTu4G4y', 29), (30, 'Chup4BCT', 30), 
-(31, 'Matrix-de-segunda', 31),(32, 'AG.M.A.G', 32), (33, 'Toneco123', 33), (34, 'TrumpIng', 34), 
-(35, 'EstUfAdO', 35),(36, 'Maciela', 36), (37, 'caomeiguozhi', 37), (38, 'CartMan', 38);
+-- Inserir 60 Operadores (30 Ataque, 30 Defesa)
+-- IDs 1-30: Ataque
+INSERT INTO operador (id, nome, velocidade, vida) VALUES
+(1, 'Sledge', 2, 2), (2, 'Thatcher', 2, 2), (3, 'Ash', 3, 1), (4, 'Thermite', 2, 2), (5, 'Twitch', 2, 2),
+(6, 'Fuze', 1, 3), (7, 'Blitz', 2, 2), (8, 'IQ', 3, 1), (9, 'Buck', 2, 2), (10, 'Hibana', 3, 1),
+(11, 'Jackal', 2, 2), (12, 'Zofia', 2, 2), (13, 'Finka', 2, 2), (14, 'Maverick', 3, 1), (15, 'Nomad', 2, 2),
+(16, 'Gridlock', 1, 3), (17, 'Nokk', 2, 2), (18, 'Amaru', 3, 1), (19, 'Kali', 2, 2), (20, 'Iana', 2, 2),
+(21, 'Ace', 2, 2), (22, 'Zero', 2, 2), (23, 'Flores', 2, 2), (24, 'Osa', 2, 2), (25, 'Sens', 1, 3),
+(26, 'Grim', 3, 1), (27, 'Brava', 3, 1), (28, 'Ram', 1, 3), (29, 'Striker (2025)', 2, 2), (30, 'Vortex (2025)', 2, 2);
 
--- Classificação (Ataque/Defesa - Dados de exemplo, associando alguns operadores)
-INSERT INTO Ataque (fk_Operador_ID_Operador, Drone, Gadget_Unico_Ataque, Habilidade_Unica_Ataque) VALUES
-(1, 2, 'Twitch Drone', 'Dispara laser para destruir gadgets'),
-(3, 2, 'Rifle Shield', 'Escudo montado na arma que protege a cabeça'),
-(5, 2, 'Breaching Round', 'Dispara um projétil explosivo que destrói superfícies'),
-(10, 2, 'Skeleton Key', 'Espingarda acoplada para abrir paredes e pisos'),
-(12, 2, 'Adrenal Surge', 'Aumenta a vida e revive aliados caídos'),
-(13, 2, 'EE-ONE-D', 'Detecta inimigos em movimento com um drone aéreo'),
-(14, 2, 'S.E.L.M.A. Aquabreacher', 'Explosivo aquático que destrói paredes reforçadas'),
-(15, 2, 'KS79 LIFELINE', 'Lança granadas de concussão e de impacto'),
-(19, 2, 'Airjab', 'Mina de ar que empurra os inimigos para trás'),
-(21, 2, 'Gemini Replicator', 'Cria um holograma controlável para enganar inimigos'),
-(23, 2, 'RCE-RATERO Charge', 'Drone explosivo que pode ser guiado sob portas'),
-(27, 2, 'Breaching Torch', 'Maçarico silencioso para criar pequenas aberturas'),
-(28, 2, 'Tactical Crossbow', 'Besta que dispara dardos asfixiantes e de fumaça'),
-(31, 2, 'X-KAIROS', 'Lança projéteis explosivos que abrem paredes reforçadas'),
-(32, 2, 'Breaching Hammer', 'Marreta para destruir superfícies não reforçadas');
+-- IDs 31-60: Defesa
+INSERT INTO operador (id, nome, velocidade, vida) VALUES
+(31, 'Smoke', 2, 2), (32, 'Mute', 2, 2), (33, 'Castle', 2, 2), (34, 'Pulse', 3, 1), (35, 'Doc', 1, 3),
+(36, 'Rook', 1, 3), (37, 'Kapkan', 2, 2), (38, 'Tachanka', 1, 3), (39, 'Jager', 2, 2), (40, 'Bandit', 3, 1),
+(41, 'Frost', 2, 2), (42, 'Valkyrie', 2, 2), (43, 'Caveira', 3, 1), (44, 'Echo', 1, 3), (45, 'Mira', 1, 3),
+(46, 'Lesion', 2, 2), (47, 'Ela', 3, 1), (48, 'Vigil', 3, 1), (49, 'Maestro', 1, 3), (50, 'Alibi', 3, 1),
+(51, 'Clash', 1, 3), (52, 'Kaid', 1, 3), (53, 'Mozzie', 2, 2), (54, 'Warden', 1, 3), (55, 'Goyo', 2, 2),
+(56, 'Wamai', 2, 2), (57, 'Oryx', 2, 2), (58, 'Melusi', 3, 1), (59, 'Aruni', 2, 2), (60, 'Thunderbird', 2, 2);
 
-INSERT INTO Defesa (fk_Operador_ID_Operador, Gadget_Unico_Defesa, Habilidade_Unica_Defesa, Preparo) VALUES
-(2, 'Stim Pistol', 'Cura ou revive aliados a distância', 'Manter posição'),
-(4, 'Armor Pack', 'Fornece coletes de armadura extra para a equipe', 'Manter posição'),
-(6, 'Kiba Barrier', 'Lança uma barreira expansível que bloqueia a visão e projéteis', 'Bloquear área'),
-(7, 'Bandit Battery', 'Eletrifica superfícies de metal, destruindo gadgets', 'Preparar armadilha'),
-(8, 'Mute Jammer', 'Bloqueia sinais de gadgets eletrônicos inimigos', 'Preparar armadilha'),
-(9, 'Black Eye Camera', 'Câmeras adesivas que podem ser colocadas em qualquer lugar', 'Coletar informação'),
-(11, 'Welcome Mat', 'Armadilha mecânica que incapacita inimigos', 'Preparar armadilha'),
-(16, 'Active Defense System (ADS)', 'Destrói projéteis inimigos que entram na sua área de efeito', 'Manter posição'),
-(17, 'Gu Mine', 'Mina venenosa e invisível que causa dano e revela inimigos', 'Preparar armadilha'),
-(18, 'Silent Step', 'Habilidade que permite mover-se silenciosamente', 'Roaming'),
-(20, 'Surya Gate', 'Barreira laser que causa dano e destrói drones', 'Bloquear área'),
-(22, 'Razorbloom Shell', 'Dispositivo que explode e lança espinhos quando detecta inimigos', 'Preparar armadilha'),
-(24, 'Entry Denial Device (EDD)', 'Armadilha laser que explode em portas e janelas', 'Preparar armadilha'),
-(25, 'SPEC-IO Electro-Sensor', 'Detecta gadgets eletrônicos através de paredes', 'Coletar informação'),
-(26, 'Banshee Sonic Defense', 'Dispositivo que desacelera e desorienta inimigos', 'Bloquear área'),
-(29, 'Pest Launcher', 'Lança pequenas aranhas robóticas que hackeiam drones inimigos', 'Coletar informação'),
-(30, 'Cardiac Sensor', 'Detecta batimentos cardíacos de inimigos próximos através de paredes', 'Coletar informação');
+-- Especificar tipo Ataque (30)
+INSERT INTO ataque (id, habilidade_especial) VALUES
+(1, 'Marreta Tática'), (2, 'Granada PEM'), (3, 'Projétil de Infiltração'), (4, 'Carga Exotérmica'), (5, 'Drone de Choque'),
+(6, 'Cargas de Fragmentação'), (7, 'Escudo Tático'), (8, 'Detector de Eletrônicos'), (9, 'Chave-Mestra'), (10, 'X-KAIROS'),
+(11, 'Eyenox'), (12, 'KS79 Lifeline'), (13, 'Surto de Adrenalina'), (14, 'Maçarico'), (15, 'Lançador "Airjab"'),
+(16, 'Trax Stingers'), (17, 'Redutor de Presença HEL'), (18, 'Gancho Garra'), (19, 'Rifle CSRX 300'), (20, 'Replicador Gemini'),
+(21, 'S.E.L.M.A.'), (22, 'Câmera Argus'), (23, 'Drone RCE-Ratero'), (24, 'Escudo Talon'), (25, 'Projetor R.O.U.'),
+(26, 'Lançador Kawan'), (27, 'Drone Kludge'), (28, 'BU-GI Auto-Breacher'), (29, 'Pulso Sônico'), (30, 'Distorção Temporal');
 
--- Associação Operador <-> Arma (Dados de exemplo)
-INSERT INTO Porta (fk_Operador_ID_Operador, fk_Arma_ID_Arma) VALUES
--- Twitch
-(1, 7), (1, 2),
--- Doc
-(2, 9), (2, 10),
--- Blackbeard
-(3, 11), (3, 22),
--- Rook
-(4, 9), (4, 10),
--- Ash
-(5, 1), (5, 12),
--- Bandit
-(7, 3), (7, 16),
--- Mute
-(8, 9), (8, 2),
--- Buck
-(10, 14), (10, 22),
--- Frost
-(11, 13), (11, 2),
--- Zofia
-(15, 4), (15, 5),
--- Jäger
-(16, 15), (16, 16),
--- Caveira
-(18, 12), (18, 18),
--- Mozzie
-(20, 20), (20, 21),
--- Capitão
-(28, 19), (28, 4),
--- Pulse
-(30, 8), (30, 2),
--- Sledge
-(32, 1), (32, 2);
+-- Especificar tipo Defesa (30)
+INSERT INTO defesa (id, habilidade_especial) VALUES
+(31, 'Granada de Gás Remota'), (32, 'Bloqueador de Sinal'), (33, 'Painel de Blindagem'), (34, 'Sensor Cardíaco'), (35, 'Pistola Estimulante'),
+(36, 'Bolsa de Blindagem'), (37, 'Dispositivo de Entrada'), (38, 'Lançador Incendiário'), (39, 'Sistema de Defesa Ativa'), (40, 'Fio de Choque'),
+(41, 'Capacho "Welcome"'), (42, 'Câmera "Black Eye"'), (43, 'Passo Silencioso'), (44, 'Drone Yokai'), (45, 'Espelho Negro'),
+(46, 'Mina "Gu"'), (47, 'Mina Grzmot'), (48, 'ERC-7'), (49, 'Olho Maligno'), (50, 'Prisma'),
+(51, 'Escudo CCE'), (52, 'Eletrogarra RTILA'), (53, 'Lançador de Pestes'), (54, 'Óculos Glance'), (55, 'Escudo Volcán'),
+(56, 'Sistema Mag-NET'), (57, 'Arranque'), (58, 'Defesa Sônica Banshee'), (59, 'Porta Surya'), (60, 'Estação Kona');
 
--- V2__seed.sql (Adicionar ao final do arquivo)
+-- Inserir 30+ Relações Operador-Arma (Exemplos)
+INSERT INTO operador_arma (operador_id, arma_id) VALUES
+(1, 5), (1, 6), (3, 1), (3, 7), (5, 17), (6, 10), (9, 19), (10, 26), (11, 19), (12, 20), (13, 12), (14, 28), (15, 10),
+(16, 27), (17, 27), (18, 14), (19, 29), (20, 7), (21, 10), (22, 25), (23, 26), (24, 12), (25, 12), (26, 14), (27, 17), (28, 7), (29, 1), (30, 25),
+(31, 2), (31, 3), (32, 2), (32, 3), (33, 3), (34, 3), (35, 2), (35, 3), (36, 2), (36, 3), (37, 11), (37, 3), (38, 11),
+(39, 4), (40, 9), (41, 3), (42, 18), (43, 3), (44, 2), (45, 8), (46, 27), (47, 8), (48, 21), (49, 15), (50, 22), (51, 6),
+(52, 16), (53, 14), (54, 18), (55, 16), (56, 9), (57, 16), (58, 9), (59, 13), (60, 12);
 
--- Adicionando dados de exemplo para associação Jogador <-> Operador
-INSERT INTO Jogador_Op_Atk (fk_Jogador_ID_Jogador, fk_Operador_Ataque_ID, Winrate) VALUES
-(1, 1, 54.5), (2, 3, 54.5), (3, 5, 54.5), (4, 5, 44.5), (5, 5, 44.5), (6, 1, 44.5),
-(7, 5, 54.5), (8, 5, 44.5), (9, 10, 54.5), (10, 12, 44.5), (11, 13, 54.5), (12, 10, 54.5),
-(13, 5, 54.5), (14, 14, 44.5), (15, 15, 44.5), (16, 10, 54.5), (17, 5, 54.5), (18, 5, 44.5),
-(19, 10, 54.5), (20, 14, 34.5), (21, 5, 44.5), (22, 5, 44.5), (23, 19, 54.5), (24, 14, 44.5),
-(25, 14, 44.5), (26, 21, 44.5), (27, 23, 34.5), (28, 1, 54.5), (29, 1, 34.5), (30, 27, 85.0),
-(31, 28, 44.5), (32, 15, 95.5), (33, 5, 95.5), (34, 32, 54.5), (35, 31, 74.5), (36, 32, 44.5),
-(37, 13, 44.5), (38, 3, 64.5);
+-- Inserir 30 Partidas
+INSERT INTO partida (mapa_id, modo_de_jogo_id, time_vencedor_id, duracao_minutos) VALUES
+(1, 1, 1, 25), (2, 2, 3, 18), (3, 3, 2, 22), (4, 1, 4, 30), (5, 2, 5, 15),
+(6, 3, 1, 28), (7, 1, 6, 19), (8, 2, 7, 24), (9, 3, 8, 21), (10, 1, 9, 27),
+(11, 2, 10, 16), (12, 3, 1, 23), (13, 1, 3, 29), (14, 2, 5, 14), (15, 3, 7, 26),
+(16, 1, 2, 20), (17, 2, 4, 17), (18, 3, 6, 25), (19, 1, 8, 22), (20, 2, 10, 30),
+(21, 3, 1, 18), (22, 1, 3, 28), (23, 2, 5, 19), (24, 3, 7, 24), (25, 1, 9, 21),
+(26, 2, 2, 27), (27, 3, 4, 16), (28, 1, 6, 23), (29, 2, 8, 29), (30, 3, 10, 14);
 
-INSERT INTO Jogador_Op_Def (fk_Jogador_ID_Jogador, fk_Operador_Defesa_ID, Winrate) VALUES
-(1, 2, 85.0), (2, 4, 54.5), (3, 6, 64.5), (4, 7, 64.5), (5, 8, 64.5), (6, 9, 54.5),
-(7, 2, 54.5), (8, 2, 54.5), (9, 11, 54.5), (10, 4, 64.5), (11, 9, 54.5), (12, 2, 54.5),
-(13, 8, 64.5), (14, 4, 44.5), (15, 9, 64.5), (16, 16, 44.5), (17, 17, 54.5), (18, 2, 54.5),
-(19, 4, 64.5), (20, 7, 64.5), (21, 11, 64.5), (22, 18, 54.5), (23, 20, 54.5), (24, 16, 44.5),
-(25, 2, 54.5), (26, 22, 85.0), (27, 24, 64.5), (28, 25, 34.5), (29, 26, 44.5), (30, 2, 95.5),
-(31, 26, 64.5), (32, 29, 85.0), (33, 2, 85.0), (34, 30, 44.5), (35, 8, 64.5), (36, 4, 34.5),
-(37, 29, 74.5), (38, 9, 54.5);
+-- Inserir 30 Participações (Usando IDs de operadores 1-60)
+INSERT INTO participa (jogador_id, partida_id, time_id, operador_id, pontuacao, kills, deaths, assists) VALUES
+(1, 1, 1, 3, 3500, 8, 2, 1), (2, 1, 1, 1, 2800, 5, 3, 2), (3, 1, 1, 10, 3100, 6, 2, 3),
+(4, 1, 1, 2, 2400, 4, 3, 1), (5, 1, 1, 14, 3000, 7, 2, 0),
+(6, 2, 2, 31, 2900, 6, 4, 0), (7, 2, 2, 39, 4000, 10, 3, 1), (8, 2, 2, 40, 2200, 3, 4, 3),
+(9, 2, 2, 45, 3300, 7, 3, 1), (10, 2, 2, 46, 2600, 5, 4, 2),
+(11, 3, 3, 5, 3200, 7, 5, 1), (12, 3, 3, 8, 2700, 4, 5, 3), (13, 3, 3, 12, 3800, 9, 4, 1),
+(14, 3, 3, 15, 2500, 3, 5, 4), (15, 3, 3, 9, 2900, 6, 4, 0),
+(16, 4, 4, 32, 3100, 6, 2, 2), (17, 4, 4, 33, 2600, 4, 3, 1), (18, 4, 4, 35, 2800, 5, 2, 3),
+(19, 4, 4, 37, 3000, 7, 2, 0), (20, 4, 4, 42, 3400, 8, 3, 1),
+(21, 5, 5, 4, 3600, 9, 4, 1), (22, 5, 5, 6, 2300, 2, 5, 2), (23, 5, 5, 11, 3000, 6, 4, 3),
+(24, 5, 5, 13, 2900, 5, 4, 1), (25, 5, 5, 7, 3100, 7, 4, 0),
+(26, 6, 6, 50, 2800, 5, 3, 2), (27, 6, 6, 51, 2400, 3, 3, 1), (28, 6, 6, 55, 3200, 7, 2, 1),
+(29, 6, 6, 58, 3500, 8, 2, 0), (30, 6, 6, 60, 2700, 4, 3, 3);
+
+-- Inserir 30 Dados (um para cada participação)
+INSERT INTO dados (participa_id, headshots, gadgets_destruidos) VALUES
+(1, 4, 2), (2, 1, 5), (3, 3, 1), (4, 2, 8), (5, 5, 3), (6, 2, 1), (7, 6, 3),
+(8, 1, 0), (9, 4, 2), (10, 2, 4), (11, 3, 3), (12, 1, 6), (13, 5, 2), (14, 0, 1),
+(15, 3, 0), (16, 2, 7), (17, 1, 2), (18, 2, 0), (19, 4, 1), (20, 3, 5), (21, 5, 2),
+(22, 0, 0), (23, 3, 4), (24, 2, 1), (25, 3, 0), (26, 2, 2), (27, 1, 0), (28, 4, 3),
+(29, 3, 1), (30, 2, 0);
