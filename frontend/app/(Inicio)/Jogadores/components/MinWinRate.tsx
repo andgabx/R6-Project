@@ -25,7 +25,14 @@ interface MinWinRateProps {
     handleError: (error: unknown, message: string) => void;
 }
 
-export default function MinWinRate({ jogadores, setJogadores, loading, setLoading, error, setError, handleError }: MinWinRateProps) {
+export default function MinWinRate({
+    jogadores,
+    setJogadores,
+    setLoading,
+    error,
+    setError,
+    handleError,
+}: MinWinRateProps) {
     const [minWinRate, setMinWinRate] = useState<number>(0);
 
     const buscarPorWinRateMinimo = async () => {
@@ -130,9 +137,7 @@ export default function MinWinRate({ jogadores, setJogadores, loading, setLoadin
                     placeholder="Win Rate mínimo"
                     value={minWinRate || ""}
                     onChange={(e) =>
-                        setMinWinRate(
-                            parseFloat(e.target.value) || 0
-                        )
+                        setMinWinRate(parseFloat(e.target.value) || 0)
                     }
                 />
                 <Button onClick={buscarPorWinRateMinimo}>

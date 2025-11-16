@@ -95,10 +95,10 @@ export const WlKdChart = ({ players }: WlKdChartProps) => {
                                 type="number"
                                 dataKey="wl"
                                 name="W/L %"
-                                unit="%" // Adiciona o sufixo '%'
+                                unit="" // Adiciona o sufixo '%'
                                 // Limita o domínio do eixo Y de 0 a 100+
                                 domain={[0, 'dataMax + 5']} 
-                                tickFormatter={(value) => `${value}%`}
+                                tickFormatter={(value) => `${value}0%`}
                             />
                             
                             <ChartTooltip
