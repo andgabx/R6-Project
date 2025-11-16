@@ -53,6 +53,11 @@ export interface Dados {
 export interface JogadorOperador {
     nomeOperador: string;
     winrate: number;
+    operador: {
+        idOperador: number;
+        nome: string;
+        tipo: string;
+    };
 }
 
 export interface Jogador {

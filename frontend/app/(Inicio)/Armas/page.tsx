@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Arma, ArmaRequest } from "../../types/arma";
-import { armaService } from "../../services/ArmaService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Crosshair, AlertTriangle, Loader2, Trash2, Search, Edit } from "lucide-react";
+import { armaService } from "@/services/ArmaService";
+import { Arma, ArmaRequest } from "@/types/arma";
 
 type TabType =
   | "listAll"
@@ -25,8 +25,6 @@ export default function ArmasPage() {
   const [arma, setArma] = useState<Arma | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // Form and Modal states
   const [formData, setFormData] = useState<ArmaRequest>({ nome: "", tipo: "", dano: 0 });
   const [selectedArma, setSelectedArma] = useState<Arma | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

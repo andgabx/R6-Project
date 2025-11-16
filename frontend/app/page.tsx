@@ -99,63 +99,9 @@ export default function HomePage() {
         },
     ];
 
-    const quickStats = [
-        {
-            label: "Jogadores Ativos",
-            value: "1,247",
-            icon: Users,
-            color: "text-primary",
-        },
-        {
-            label: "Partidas Hoje",
-            value: "89",
-            icon: Activity,
-            color: "text-chart-1",
-        },
-        {
-            label: "Taxa de Headshot",
-            value: "47.3%",
-            icon: Target,
-            color: "text-chart-2",
-        },
-        {
-            label: "Operadores Populares",
-            value: "Ash, Jäger",
-            icon: Award,
-            color: "text-chart-3",
-        },
-    ];
-
     return (
-        <div className="min-h-screen bg-background">
-            {/* Welcome Modal */}
-            <Dialog open={showWelcomeModal} onOpenChange={setShowWelcomeModal}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-primary">
-                            <Shield className="h-6 w-6" />
-                            Rainbow Six Siege Stats
-                        </DialogTitle>
-                        <DialogDescription className="text-pretty">
-                            Bem-vindo à plataforma completa de estatísticas do
-                            Rainbow Six Siege! Explore análises detalhadas,
-                            gerencie jogadores, operadores, armas e acompanhe o
-                            desempenho em partidas. Escolha uma seção abaixo
-                            para começar.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex justify-end">
-                        <Button
-                            onClick={() => setShowWelcomeModal(false)}
-                            className="bg-primary text-primary-foreground"
-                        >
-                            Explorar Plataforma
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            <main className="container mx-auto px-4 py-8">
+        <div className=" bg-background">
+            <main className="container mx-auto px-4 py-4">
                 {/* Hero Section */}
                 <div className="text-center mb-12">
                     <h2 className="text-4xl font-bold mb-4 text-balance">
@@ -168,95 +114,48 @@ export default function HomePage() {
                     </p>
                 </div>
 
-                {/* Quick Stats */}
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    {quickStats.map((stat, index) => (
-                        <Card key={index} className="bg-card border-border">
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm text-muted-foreground mb-1">
-                                            {stat.label}
-                                        </p>
-                                        <p
-                                            className={`text-2xl font-bold ${stat.color}`}
-                                        >
-                                            {stat.value}
-                                        </p>
-                                    </div>
-                                    <stat.icon
-                                        className={`h-8 w-8 ${stat.color}`}
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div> */}
-
                 {/* Navigation Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {navigationCards.map((card, index) => (
-                        <Card
-                            key={index}
-                            className="bg-card border-border hover:shadow-lg transition-all duration-300 group cursor-pointer"
-                        >
-                            <CardHeader className="pb-4">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div
-                                        className={`p-3 rounded-lg ${card.bgColor}`}
-                                    >
-                                        <card.icon
-                                            className={`h-8 w-8 ${card.color}`}
-                                        />
+                        <Link key={index} href={card.href} className="group">
+                            <Card
+                                key={index}
+                                className="bg-card border-border hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                            >
+                                <CardHeader className="pb-4">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div
+                                            className={`p-3 rounded-lg ${card.bgColor}`}
+                                        >
+                                            <card.icon
+                                                className={`h-8 w-8 ${card.color}`}
+                                            />
+                                        </div>
+                                        <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                                     </div>
-                                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                                </div>
-                                <CardTitle className="text-xl mb-2">
-                                    {card.title}
-                                </CardTitle>
-                                <CardDescription className="text-pretty">
-                                    {card.description}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">
-                                        {card.stats}
-                                    </span>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                                        asChild
-                                    >
-                                        <Link href={card.href}>Acessar</Link>
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                    <CardTitle className="text-xl mb-2">
+                                        {card.title}
+                                    </CardTitle>
+                                    <CardDescription className="text-pretty">
+                                        {card.description}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-muted-foreground">
+                                            {card.stats}
+                                        </span>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                                            asChild
+                                        ></Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </Link>
                     ))}
-                </div>
-
-                {/* Footer Info */}
-                <div className="mt-16 text-center">
-                    <Card className="bg-card/50 border-border">
-                        <CardContent className="p-8">
-                            <div className="flex items-center justify-center gap-2 mb-4">
-                                <Gamepad2 className="h-6 w-6 text-primary" />
-                                <h3 className="text-xl font-semibold">
-                                    Plataforma em desenvolvimento
-                                </h3>
-                            </div>
-                            <p className="text-muted-foreground max-w-2xl mx-auto text-pretty">
-                                Esta plataforma pretende oferecer análise completa de
-                                dados do Rainbow Six Siege, incluindo
-                                estatísticas de jogadores, informações de
-                                operadores, arsenal completo, histórico de
-                                partidas e muito mais. Navegue pelas seções para
-                                explorar todas as funcionalidades.
-                            </p>
-                        </CardContent>
-                    </Card>
                 </div>
             </main>
         </div>
