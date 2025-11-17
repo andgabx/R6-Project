@@ -422,7 +422,7 @@ export default function ListAll({
                     horasJogadas: selectedJogador.dados?.horasJogadas || 0,
                     mainRole: selectedJogador.dados?.mainRole || "Support",
                     preferenciaJogo:
-                        selectedJogador.dados?.preferenciaJogo || "Solo",
+                        selectedJogador.dados?.preferenciaJogo || "Competitivo",
                     mapaFavoritoId:
                         selectedJogador.dados?.mapaFavorito?.idMapa ?? 0,
                     mapaMaisVitoriasId:
@@ -742,7 +742,7 @@ export default function ListAll({
                             </Label>
                             <Select
                                 value={
-                                    selectedJogador.dados?.preferenciaJogo || "Solo"
+                                    selectedJogador.dados?.preferenciaJogo || "Competitivo"
                                 }
                                 onValueChange={(value) => {
                                     if (selectedJogador) {
@@ -760,9 +760,10 @@ export default function ListAll({
                                     <SelectValue placeholder="Selecione a preferência" />
                                 </SelectTrigger>
                                 <SelectContent className="max-h-[200px]">
-                                    <SelectItem value="Solo">Solo</SelectItem>
-                                    <SelectItem value="Duo">Duo</SelectItem>
-                                    <SelectItem value="Squad">Squad</SelectItem>
+                                    <SelectItem value="Competitivo">
+                                        Competitivo
+                                    </SelectItem>
+                                    <SelectItem value="Casual">Casual</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { UserPlus, Plus, X } from "lucide-react";
 import { Jogador, JogadorRequest } from "@/types/jogador";
 import { jogadorService } from "@/services/JogadorService";
@@ -34,7 +41,7 @@ export default function Create({
             plataforma: "PC",
             horasJogadas: 0,
             mainRole: "Suporte",
-            preferenciaJogo: "Casual",
+            preferenciaJogo: "Competitivo",
             mapaFavoritoId: null,
             mapaMaisVitoriasId: null,
             mapaMaisDerrotasId: null,
@@ -138,7 +145,7 @@ export default function Create({
                     plataforma: "PC",
                     horasJogadas: 0,
                     mainRole: "Support",
-                    preferenciaJogo: "Solo",
+                    preferenciaJogo: "Competitivo",
                     mapaFavoritoId: null,
                     mapaMaisVitoriasId: null,
                     mapaMaisDerrotasId: null,
@@ -450,14 +457,30 @@ export default function Create({
                             <Label htmlFor="preferenciaJogo">
                                 Preferência de Jogo
                             </Label>
-                            <Input
-                                id="preferenciaJogo"
-                                name="preferenciaJogo"
-                                placeholder="Ranked, Casual, etc."
+                            <Select
                                 value={formData.dados.preferenciaJogo}
-                                onChange={(e) => handleInputChange(e, "dados")}
-                                required
-                            />
+                                onValueChange={(value) => {
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        dados: {
+                                            ...prev.dados,
+                                            preferenciaJogo: value,
+                                        },
+                                    }));
+                                }}
+                            >
+                                <SelectTrigger id="preferenciaJogo">
+                                    <SelectValue placeholder="Selecione a preferência" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Competitivo">
+                                        Competitivo
+                                    </SelectItem>
+                                    <SelectItem value="Casual">
+                                        Casual
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div>
                             <Label htmlFor="mapaFavoritoId">

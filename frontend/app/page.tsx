@@ -17,6 +17,7 @@ import { ActionCard } from "./(Inicio)/Dashboard/components/ActionCard";
 import { PerformanceChart } from "./(Inicio)/Dashboard/components/PerformanceChart";
 import { RecentActivity } from "./(Inicio)/Dashboard/components/RecentActivity";
 import { RecentPlayersTable } from "./(Inicio)/Dashboard/components/RecentPlayersTable";
+import { CompetitiveTeams } from "./(Inicio)/Dashboard/components/CompetitiveTeams";
 
 export default function HomePage() {
     const [players, setPlayers] = useState<Jogador[]>([]);
@@ -130,6 +131,11 @@ export default function HomePage() {
                         href="/Dashboard"
                         color="orange"
                     />
+                </div>
+
+                {/* Competitive Teams - Card maior para destaque */}
+                <div className="mb-8">
+                    <CompetitiveTeams />
                 </div>
 
                 {/* Metrics Cards */}
