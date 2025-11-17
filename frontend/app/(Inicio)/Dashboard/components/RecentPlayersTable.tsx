@@ -7,7 +7,6 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Jogador } from "@/types/jogador";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -32,17 +31,22 @@ const getStatusColor = (status: string) => {
     }
 };
 
-export const RecentPlayersTable = ({
-    players,
-}: RecentPlayersTableProps) => {
-    const recentPlayers = players.slice(0, 5);
+export const RecentPlayersTable = ({ players }: RecentPlayersTableProps) => {
+    // Ordenar por nível (maior primeiro) e pegar os top 5
+    const topPlayersByLevel = [...players]
+        .sort((a, b) => {
+            const nivelA = a.dados?.nivel || 0;
+            const nivelB = b.dados?.nivel || 0;
+            return nivelB - nivelA;
+        })
+        .slice(0, 5);
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Jogadores Adicionados Recentemente</CardTitle>
+                <CardTitle>Jogadores com Maior Nível</CardTitle>
                 <CardDescription>
-                    Monitore os jogadores adicionados recentemente
+                    Top 5 jogadores com os maiores níveis
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -71,7 +75,7 @@ export const RecentPlayersTable = ({
                             </tr>
                         </thead>
                         <tbody>
-                            {recentPlayers.length === 0 ? (
+                            {topPlayersByLevel.length === 0 ? (
                                 <tr>
                                     <td
                                         colSpan={6}
@@ -81,7 +85,7 @@ export const RecentPlayersTable = ({
                                     </td>
                                 </tr>
                             ) : (
-                                recentPlayers.map((player) => (
+                                topPlayersByLevel.map((player) => (
                                     <tr
                                         key={player.idJogador}
                                         className="border-b hover:bg-muted/50 transition-colors"
@@ -105,9 +109,11 @@ export const RecentPlayersTable = ({
                                                 "N/A"}
                                         </td>
                                         <td className="py-3 text-sm">
-                                            {player.dados?.winrate?.toFixed(1) ||
-                                                "N/A"}
-                                            %
+                                            {player.dados?.winrate !== undefined
+                                                ? player.dados.winrate.toFixed(
+                                                      3
+                                                  )
+                                                : "N/A"}
                                         </td>
                                         <td className="py-3">
                                             <div className="flex items-center gap-2">
@@ -132,4 +138,3 @@ export const RecentPlayersTable = ({
         </Card>
     );
 };
-

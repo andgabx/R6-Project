@@ -12,7 +12,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Trash2, Edit } from "lucide-react";
+import { Trash2, Edit, Filter, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -74,6 +74,10 @@ export default function ListAll({
     const [operadores, setOperadores] = useState<Operador[]>([]);
     const [rankNome, setRankNome] = useState<string>("Bronze");
     const [rankNumero, setRankNumero] = useState<string>("I");
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [filterRankNome, setFilterRankNome] = useState<string>("");
+    const [filterRankNumero, setFilterRankNumero] = useState<string>("");
+    const [allJogadores, setAllJogadores] = useState<Jogador[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -193,7 +197,8 @@ export default function ListAll({
                 operadoresAtaque: [],
                 operadoresDefesa: [],
             }));
-            setJogadores(jogadoresConvertidos);
+            setAllJogadores(jogadoresConvertidos);
+            aplicarFiltroRank(jogadoresConvertidos);
             setSearchedJogador(null);
             setActiveSearch(null);
             if (showToast) {
@@ -228,6 +233,8 @@ export default function ListAll({
             if (data) {
                 setSearchedJogador(data);
                 // Filtra a lista para mostrar apenas o jogador encontrado
+                // Não aplica filtro de rank quando busca por ID específico
+                setAllJogadores([data]);
                 setJogadores([data]);
                 toast.success(`Jogador encontrado: ${data.nickname}`, {
                     position: "bottom-center",
@@ -266,7 +273,8 @@ export default function ListAll({
             setError("");
             setActiveSearch("kd");
             const data = await jogadorService.listByMinKd(minKd);
-            setJogadores(data);
+            setAllJogadores(data);
+            aplicarFiltroRank(data);
             toast.success(
                 `Encontrados ${data.length} jogador(es) com K/D mínimo de ${minKd}`,
                 {
@@ -299,7 +307,8 @@ export default function ListAll({
             setError("");
             setActiveSearch("winrate");
             const data = await jogadorService.listByMinWinRate(minWinRate);
-            setJogadores(data);
+            setAllJogadores(data);
+            aplicarFiltroRank(data);
             toast.success(
                 `Encontrados ${data.length} jogador(es) com Win Rate mínimo de ${minWinRate}%`,
                 {
@@ -332,7 +341,8 @@ export default function ListAll({
             setError("");
             setActiveSearch("level");
             const data = await jogadorService.listByMinLevel(minLevel);
-            setJogadores(data);
+            setAllJogadores(data);
+            aplicarFiltroRank(data);
             toast.success(
                 `Encontrados ${data.length} jogador(es) com nível mínimo de ${minLevel}`,
                 {
@@ -361,6 +371,66 @@ export default function ListAll({
         setMinLevel(0);
         setActiveSearch(null);
         carregarTodosJogadores();
+    };
+
+    // Função para aplicar filtro de rank
+    const aplicarFiltroRank = (listaJogadores: Jogador[]) => {
+        if (!filterRankNome && !filterRankNumero) {
+            // Sem filtro, mostrar todos
+            setJogadores(listaJogadores);
+            return;
+        }
+
+        const jogadoresFiltrados = listaJogadores.filter((j) => {
+            if (!j.dados?.rankJogador) return false;
+
+            const rank = j.dados.rankJogador;
+            const parts = rank.split(" ");
+            const ultimaParte = parts[parts.length - 1];
+            const temNumero = ["I", "II", "III", "IV", "V"].includes(ultimaParte);
+            
+            const nomeRank = temNumero ? parts.slice(0, -1).join(" ") : rank;
+            const numeroRank = temNumero ? ultimaParte : "";
+
+            // Verificar se o nome do rank corresponde
+            const nomeMatch = !filterRankNome || nomeRank === filterRankNome;
+            
+            // Verificar se o número do rank corresponde
+            let numeroMatch = true;
+            if (filterRankNumero) {
+                if (filterRankNumero === "none") {
+                    // Se selecionou "none", deve não ter número
+                    numeroMatch = !temNumero;
+                } else {
+                    // Se selecionou um número específico, deve ter esse número
+                    numeroMatch = numeroRank === filterRankNumero;
+                }
+            }
+
+            return nomeMatch && numeroMatch;
+        });
+
+        setJogadores(jogadoresFiltrados);
+    };
+
+    // Função para aplicar o filtro quando o usuário confirmar
+    const handleAplicarFiltroRank = () => {
+        aplicarFiltroRank(allJogadores);
+        setIsFilterModalOpen(false);
+        if (filterRankNome || filterRankNumero) {
+            toast.success("Filtro de rank aplicado!", {
+                position: "bottom-center",
+            });
+        }
+    };
+
+    // Função para limpar o filtro de rank
+    const handleLimparFiltroRank = () => {
+        setFilterRankNome("");
+        setFilterRankNumero("");
+        setIsFilterModalOpen(false);
+        // Recarrega todos os jogadores, igual ao botão "Recarregar"
+        carregarTodosJogadores(true);
     };
 
     useEffect(() => {
@@ -1091,12 +1161,25 @@ export default function ListAll({
         <div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                 <h2 className="text-2xl font-bold">Todos os Jogadores</h2>
-                <Button
-                    onClick={() => carregarTodosJogadores(true)}
-                    variant="outline"
-                >
-                    Recarregar
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        onClick={() => setIsFilterModalOpen(true)}
+                        variant="outline"
+                        className="relative"
+                    >
+                        <Filter className="h-4 w-4 mr-2" />
+                        Filtrar por Rank
+                        {(filterRankNome || filterRankNumero) && (
+                            <span className="ml-2 h-2 w-2 bg-primary rounded-full" />
+                        )}
+                    </Button>
+                    <Button
+                        onClick={() => carregarTodosJogadores(true)}
+                        variant="outline"
+                    >
+                        Recarregar
+                    </Button>
+                </div>
             </div>
 
             {/* Buscas */}
@@ -1260,6 +1343,30 @@ export default function ListAll({
                     </CardContent>
                 </Card>
             )}
+
+            {/* Indicador de filtro de rank ativo */}
+            {(filterRankNome || filterRankNumero) && (
+                <Card className="mb-6 bg-primary/5 border-primary/20">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">
+                            Filtro de Rank ativo:{" "}
+                            <strong className="text-primary">
+                                {filterRankNome || "Qualquer"}{" "}
+                                {filterRankNumero && filterRankNumero !== "none" && filterRankNumero}
+                            </strong>
+                        </p>
+                        <Button
+                            onClick={handleLimparFiltroRank}
+                            variant="ghost"
+                            size="sm"
+                            className="h-8"
+                        >
+                            <X className="h-4 w-4 mr-1" />
+                            Limpar
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
             
             <div className="mt-6">
                 {renderJogadorList({
@@ -1346,6 +1453,83 @@ export default function ListAll({
                             Salvar Alterações
                         </Button>
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog de Filtro por Rank */}
+            <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Filtrar por Rank</DialogTitle>
+                        <DialogDescription>
+                            Selecione o rank para filtrar os jogadores. Deixe em branco para não filtrar por aquele campo.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div>
+                            <Label htmlFor="filterRankNome">Rank (Nome)</Label>
+                            <Select
+                                value={filterRankNome || "none"}
+                                onValueChange={(value) =>
+                                    setFilterRankNome(value === "none" ? "" : value)
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o rank" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[200px]">
+                                    <SelectItem value="none">Todos</SelectItem>
+                                    <SelectItem value="Cobre">Cobre</SelectItem>
+                                    <SelectItem value="Bronze">Bronze</SelectItem>
+                                    <SelectItem value="Prata">Prata</SelectItem>
+                                    <SelectItem value="Ouro">Ouro</SelectItem>
+                                    <SelectItem value="Platina">Platina</SelectItem>
+                                    <SelectItem value="Esmeralda">Esmeralda</SelectItem>
+                                    <SelectItem value="Diamante">Diamante</SelectItem>
+                                    <SelectItem value="Campeão">Campeão</SelectItem>
+                                    <SelectItem value="Desconhecido">Desconhecido</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label htmlFor="filterRankNumero">Rank (Número)</Label>
+                            <Select
+                                value={filterRankNumero || "none"}
+                                onValueChange={(value) =>
+                                    setFilterRankNumero(value === "none" ? "" : value)
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o número" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[200px]">
+                                    <SelectItem value="none">Todos</SelectItem>
+                                    <SelectItem value="I">I</SelectItem>
+                                    <SelectItem value="II">II</SelectItem>
+                                    <SelectItem value="III">III</SelectItem>
+                                    <SelectItem value="IV">IV</SelectItem>
+                                    <SelectItem value="V">V</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooterComponent>
+                        <Button
+                            variant="outline"
+                            onClick={handleLimparFiltroRank}
+                        >
+                            Limpar Filtro
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsFilterModalOpen(false)}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button onClick={handleAplicarFiltroRank}>
+                            Aplicar Filtro
+                        </Button>
+                    </DialogFooterComponent>
                 </DialogContent>
             </Dialog>
         </div>

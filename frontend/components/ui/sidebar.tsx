@@ -88,11 +88,11 @@ export const DesktopSidebar = ({
         <>
             <motion.div
                 className={cn(
-                    "h-full px-4 py-4 hidden md:flex md:flex-col bg-background shrink-0",
+                    "h-full px-3 py-4 hidden md:flex md:flex-col shrink-0 border-r transition-colors",
                     className
                 )}
                 animate={{
-                    width: animate ? (open ? "150px" : "60px") : "150px",
+                    width: animate ? (open ? "220px" : "72px") : "220px",
                 }}
                 onMouseEnter={() => setOpen(true)}
                 onMouseLeave={() => setOpen(false)}
@@ -114,7 +114,7 @@ export const MobileSidebar = ({
         <>
             <div
                 className={cn(
-                    "h-10 px-4 py-4 flex flex-row md:hidden  items-center justify-between bg-sidebar w-full"
+                    "h-12 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-sidebar border-b border-sidebar-border w-full"
                 )}
                 {...props}
             >
@@ -135,17 +135,27 @@ export const MobileSidebar = ({
                                 ease: "easeInOut",
                             }}
                             className={cn(
-                                "fixed h-full w-full inset-0 bg-sidebar p-10 z-[100] flex flex-col justify-between",
+                                "fixed h-full w-full inset-0 bg-sidebar p-6 z-[100] flex flex-col justify-between border-r border-sidebar-border",
                                 className
                             )}
                         >
-                            <div
-                                className="absolute right-10 top-10 z-50 text-sidebar-foreground"
-                                onClick={() => setOpen(!open)}
-                            >
-                                <IconX />
+                            <div className="flex items-center justify-between mb-6 pb-4 border-b border-sidebar-border">
+                                <div className="flex items-center gap-3">
+                                    <IconMenu2 className="h-6 w-6 text-sidebar-primary" />
+                                    <span className="text-lg font-bold text-sidebar-foreground tracking-tight">
+                                        R6 Project
+                                    </span>
+                                </div>
+                                <div
+                                    className="text-sidebar-foreground cursor-pointer hover:text-sidebar-primary transition-colors"
+                                    onClick={() => setOpen(!open)}
+                                >
+                                    <IconX className="h-5 w-5" />
+                                </div>
                             </div>
-                            {children}
+                            <div className="flex flex-col gap-1">
+                                {children}
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -167,12 +177,12 @@ export const SidebarLink = ({
         <a
             href={link.href}
             className={cn(
-                "flex items-center justify-start gap-2  group/sidebar py-2",
+                "flex items-center justify-start gap-3 group/sidebar transition-all duration-200",
                 className
             )}
             {...props}
         >
-            {link.icon}
+            <span className="flex-shrink-0">{link.icon}</span>
 
             <motion.span
                 animate={{
@@ -183,7 +193,7 @@ export const SidebarLink = ({
                         : "inline-block",
                     opacity: animate ? (open ? 1 : 0) : 1,
                 }}
-                className="text-sidebar-foreground text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
+                className="text-sm font-medium group-hover/sidebar:translate-x-0.5 transition-all duration-200 whitespace-pre inline-block !p-0 !m-0 tracking-tight"
             >
                 {link.label}
             </motion.span>

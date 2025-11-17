@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     ScatterChart,
     Scatter,
@@ -24,104 +24,38 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Jogador } from "@/types/jogador";
+import { jogadorService } from "@/services/JogadorService";
+import { KdHeadshotScatterData } from "@/types/jogador";
 
-interface KdHeadshotChartProps {
-    players: Jogador[];
-}
+export const KdHeadshotChart = () => {
+    const [scatterData, setScatterData] = useState<KdHeadshotScatterData[]>([]);
+    const [loading, setLoading] = useState(true);
 
-/**
- * Converte o valor de headshot de decimal para porcentagem
- * Headshot vem como decimal (0.38 = 38%), sempre multiplica por 100
- * @param headshotValue - Valor do headshot (pode ser número ou string com vírgula)
- * @returns Porcentagem do headshot (0-100)
- */
-const convertHeadshotToPercent = (
-    headshotValue: number | string | undefined | null
-): number => {
-    if (headshotValue === undefined || headshotValue === null) {
-        console.log("convertHeadshotToPercent: valor é undefined ou null");
-        return 0;
-    }
-
-    // Converter para string primeiro para normalizar (substituir vírgula por ponto)
-    const headshotString = String(headshotValue).replace(",", ".");
-    const headshotDecimal = parseFloat(headshotString);
-
-    // Se não conseguir converter, retorna 0
-    if (isNaN(headshotDecimal)) {
-        console.log("convertHeadshotToPercent: não conseguiu converter", {
-            original: headshotValue,
-            string: headshotString,
-        });
-        return 0;
-    }
-
-    // Sempre multiplicar por 100, pois todos os valores vêm em formato decimal (0.38 = 38%)
-    // O máximo que pode vir é 1 (que representa 100%)
-    const result = headshotDecimal * 100;
-
-    // Debug apenas para valores interessantes
-    if (headshotDecimal > 0 && headshotDecimal < 1) {
-        console.log("convertHeadshotToPercent:", {
-            original: headshotValue,
-            decimal: headshotDecimal,
-            percent: result,
-        });
-    }
-
-    return result;
-};
-
-export const KdHeadshotChart = ({ players }: KdHeadshotChartProps) => {
-    // Primeiro: Processar e tratar os dados (converter headshot de decimal para porcentagem)
-    const processedData = useMemo(() => {
-        const filtered = players.filter(
-            (player) =>
-                player.dados?.kd !== undefined &&
-                player.dados?.headshot !== undefined &&
-                player.dados.kd > 0 &&
-                player.dados.headshot >= 0
-        );
-
-        // Debug: verificar primeiros valores
-        if (filtered.length > 0) {
-            console.log(
-                "Primeiros 3 valores de headshot (antes da conversão):",
-                filtered.slice(0, 3).map((p) => ({
-                    nome: p.nickname,
-                    headshotOriginal: p.dados?.headshot,
-                    tipo: typeof p.dados?.headshot,
-                }))
-            );
-        }
-
-        return filtered.map((player) => {
-            // Tratar headshot: converter de decimal para porcentagem
-            const headshotPercent = convertHeadshotToPercent(
-                player.dados?.headshot
-            );
-
-            // Debug: verificar valores específicos
-            if (player.nickname === "UbiFan") {
-                console.log("Debug UbiFan:", {
-                    original: player.dados?.headshot,
-                    tipoOriginal: typeof player.dados?.headshot,
-                    converted: headshotPercent,
-                    kd: player.dados?.kd,
-                });
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const data = await jogadorService.getKdHeadshotScatter();
+                setScatterData(data);
+            } catch (error) {
+                console.error("Erro ao buscar dados do scatter plot:", error);
+            } finally {
+                setLoading(false);
             }
+        };
 
-            return {
-                kd: player.dados?.kd || 0,
-                headshot: headshotPercent, // Já está em porcentagem (0-100)
-                nome: player.nickname || "Desconhecido",
-            };
-        });
-    }, [players]);
+        fetchData();
+    }, []);
 
-    // Segundo: Usar os dados já processados no gráfico
-    const chartData = processedData;
+    // Processar dados para o formato do gráfico
+    // O endpoint já retorna x (K/D) e y (Headshot %), mas precisamos adicionar um nome para o tooltip
+    const chartData = useMemo(() => {
+        return scatterData.map((point, index) => ({
+            kd: point.x,
+            headshot: point.y, // Já vem como porcentagem (0-100)
+            nome: `Jogador ${index + 1}`, // Placeholder, já que o endpoint não retorna nome
+        }));
+    }, [scatterData]);
 
     // Configuração de cor e label para o ChartContainer
     const chartConfig = useMemo(
@@ -149,11 +83,16 @@ export const KdHeadshotChart = ({ players }: KdHeadshotChartProps) => {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 min-h-0">
-                    {chartData.length === 0 ? (
+                    {loading ? (
                         <div className="flex items-center justify-center h-full">
                             <p className="text-muted-foreground text-center">
-                                Nenhum dado disponível para exibir. Os dados de
-                                headshot precisam estar disponíveis.
+                                Carregando dados...
+                            </p>
+                        </div>
+                    ) : chartData.length === 0 ? (
+                        <div className="flex items-center justify-center h-full">
+                            <p className="text-muted-foreground text-center">
+                                Nenhum dado disponível para exibir.
                             </p>
                         </div>
                     ) : (
@@ -179,9 +118,7 @@ export const KdHeadshotChart = ({ players }: KdHeadshotChartProps) => {
                                     type="number"
                                     dataKey="headshot"
                                     name="Headshot %"
-                                    tickFormatter={(value) =>
-                                        `${value.toFixed(1)}%`
-                                    }
+                                    tickFormatter={(value) => `${value}%`}
                                     domain={[0, 100]}
                                 />
 
@@ -206,9 +143,7 @@ export const KdHeadshotChart = ({ players }: KdHeadshotChartProps) => {
                                                     const numValue =
                                                         Number(value);
                                                     return [
-                                                        `${numValue.toFixed(
-                                                            1
-                                                        )}%`,
+                                                        `${numValue}%`,
                                                         "Headshot %",
                                                     ];
                                                 }

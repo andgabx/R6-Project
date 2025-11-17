@@ -103,3 +103,15 @@ export interface MaxKdPlayer {
   nickname: string;
   kd: number;
 }
+
+// Estrutura para relação jogador-time (Full Join)
+export interface JogadorTime {
+  jogador: string | null;
+  time: string | null;
+}
+
+// Estrutura para dados do scatter plot K/D vs Headshot
+export interface KdHeadshotScatterData {
+  x: number; // K/D
+  y: number; // Headshot % (0-100)
+}

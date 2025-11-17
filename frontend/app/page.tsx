@@ -87,7 +87,7 @@ export default function HomePage() {
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                        Dashboard Overview
+                        Rainbow 6 Siege Stats
                     </h1>
                     <p className="text-muted-foreground">
                         Monitore seus jogadores e performance do sistema

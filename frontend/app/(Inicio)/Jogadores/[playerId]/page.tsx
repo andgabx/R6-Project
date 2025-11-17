@@ -1,34 +1,72 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
 import { jogadorService } from "@/services/JogadorService";
 import { Jogador } from "@/types/jogador";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, BarChart, Shield, Sword } from "lucide-react";
+import { Users, BarChart, Shield, Sword, Users2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import OperatorIcon from "@/components/ui/OperatorIcon";
 import { PlayerPerformanceRadarChart } from "./components/PlayerPerformanceRadarChart";
 
-async function getPlayer(playerId: string): Promise<Jogador | null> {
-    try {
-        const id = parseInt(playerId, 10);
-        if (isNaN(id)) return null;
-        return await jogadorService.findById(id);
-    } catch (error) {
-        console.error("Failed to fetch player:", error);
-        return null;
-    }
-}
+export default function Page() {
+    const params = useParams();
+    const playerId = params.playerId as string;
+    const [player, setPlayer] = useState<Jogador | null>(null);
+    const [playerTeam, setPlayerTeam] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
-export default async function Page({
-    params,
-}: {
-    params: { playerId: string };
-}) {
-    const player = await getPlayer(params.playerId);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const id = parseInt(playerId, 10);
+                if (isNaN(id)) return;
+
+                // Buscar dados do jogador
+                const playerData = await jogadorService.findById(id);
+                setPlayer(playerData);
+
+                // Buscar relação jogador-time
+                const jogadoresTimes = await jogadorService.getJogadoresTimes();
+                const jogadorTime = jogadoresTimes.find(
+                    (jt) => jt.jogador === playerData.nickname
+                );
+                setPlayerTeam(jogadorTime?.time || null);
+            } catch (error) {
+                console.error("Failed to fetch player:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (playerId) {
+            fetchData();
+        }
+    }, [playerId]);
+
+    if (loading) {
+        return (
+            <div className="container mx-auto p-4 md:p-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <p className="text-muted-foreground">Carregando...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!player) {
-        notFound();
+        return (
+            <div className="container mx-auto p-4 md:p-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <p className="text-muted-foreground">
+                        Jogador não encontrado
+                    </p>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -110,6 +148,15 @@ export default async function Page({
                                                 "Sem função"}
                                         </p>
                                     </div>
+                                    <div className="p-4 bg-muted rounded-lg">
+                                        <p className="text-sm text-muted-foreground">
+                                            Time
+                                        </p>
+                                        <p className="text-2xl font-semibold">
+                                            {playerTeam ||
+                                                "Não tem nenhum time afiliado"}
+                                        </p>
+                                    </div>
                                 </div>
                             ) : (
                                 <p>Sem dados de estatísticas disponíveis.</p>
@@ -125,6 +172,32 @@ export default async function Page({
 
                 {/* Coluna Lateral */}
                 <div className="space-y-6">
+                    {/* Card de Time */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Users2 className="h-6 w-6 text-primary" />
+                                Time Afiliado
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {playerTeam ? (
+                                <div className="flex items-center gap-2">
+                                    <Badge
+                                        variant="outline"
+                                        className="text-lg px-4 py-2"
+                                    >
+                                        {playerTeam}
+                                    </Badge>
+                                </div>
+                            ) : (
+                                <p className="text-muted-foreground">
+                                    Não tem nenhum time afiliado
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
+
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">

@@ -51,7 +51,7 @@ export const PerformanceChart = ({ players = [] }: PerformanceChartProps) => {
         {
             id: "kdHeadshot",
             name: "K/D vs. Headshot %",
-            requiresPlayers: true,
+            requiresPlayers: false, // Busca dados do próprio endpoint
         },
     ];
 
@@ -72,7 +72,7 @@ export const PerformanceChart = ({ players = [] }: PerformanceChartProps) => {
             case "wlKd":
                 return <WlKdChart players={players} />;
             case "kdHeadshot":
-                return <KdHeadshotChart players={players} />;
+                return <KdHeadshotChart />;
             default:
                 return null;
         }
