@@ -1,15 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { mapaService } from "@/services/MapaService";
 import { Mapa } from "@/types/mapa";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
@@ -178,6 +173,38 @@ export default function MapasPage() {
         );
     };
 
+    /**
+     * Converte o nome do mapa para o nome da pasta de imagens
+     * Ex: "Consulado" -> "consulate", "Kafe Dostoyevsky" -> "kafe"
+     */
+    const getMapImagePath = (nome: string): string | null => {
+        const mapNameMapping: Record<string, string> = {
+            Banco: "border",
+            Fronteira: "border",
+            "Casa de Campo": "chalet",
+            Litoral: "coastline",
+            Consulado: "consulate",
+            Favela: "favela",
+            "Hereford (Novo)": "hereford",
+            "Arranha-Céu (Novo)": "skyscraper",
+            "Canal (Novo)": "kanal",
+            "Kafe Dostoyevsky": "kafe",
+            "Oregon (Novo)": "oregon",
+            "Parque Temático (Novo)": "themepark",
+            "Arranha-Céu": "skyscraper",
+            Torre: "tower",
+            Iate: "yacht",
+            "Avião (Casual)": "plane",
+            "Casa (Ranqueado)": "house",
+        };
+
+        const folderName = mapNameMapping[nome];
+        if (!folderName) return null;
+
+        // Tenta encontrar a primeira imagem disponível (geralmente -0.jpg ou -1.jpg)
+        return `/maps/${folderName}/${folderName}-0.jpg`;
+    };
+
     if (loading) {
         return (
             <div className="container mx-auto px-4 py-8">
@@ -208,29 +235,54 @@ export default function MapasPage() {
 
             {/* Grid de Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {mapas.map((mapa) => (
-                    <Card
-                        key={mapa.idMapa}
-                        className="hover:shadow-lg transition-all duration-300 cursor-pointer group"
-                        onClick={() => handleCardClick(mapa)}
-                    >
-                        <CardHeader className="pb-3">
-                            <div className="flex items-center justify-center mb-3">
-                                <div className="p-3 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-                                    <Map className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-                                </div>
+                {mapas.map((mapa) => {
+                    const hasImage = getMapImagePath(mapa.nome);
+
+                    return (
+                        <Card
+                            key={mapa.idMapa}
+                            className={`overflow-hidden p-0 h-full ${
+                                hasImage
+                                    ? "hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                                    : ""
+                            }`}
+                            onClick={
+                                hasImage
+                                    ? () => handleCardClick(mapa)
+                                    : undefined
+                            }
+                        >
+                            <div className="relative w-full h-full min-h-[200px] overflow-hidden">
+                                {hasImage ? (
+                                    <>
+                                        <Image
+                                            src={getMapImagePath(mapa.nome)!}
+                                            alt={mapa.nome}
+                                            fill
+                                            className="object-cover transition-transform duration-300 group-hover:scale-110"
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        />
+                                        {/* Overlay escurecido */}
+                                        <div className="absolute inset-0 bg-black/60 group-hover:bg-black/50 transition-colors" />
+                                        {/* Conteúdo sobreposto */}
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-4">
+                                            <CardTitle className="text-center text-base md:text-lg text-white font-bold drop-shadow-lg mb-2">
+                                                {mapa.nome}
+                                            </CardTitle>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="w-full h-full bg-muted flex flex-col items-center justify-center p-4">
+                                        <Map className="h-16 w-16 text-muted-foreground mb-3" />
+                                        <CardTitle className="text-center text-base md:text-lg text-muted-foreground font-bold">
+                                            {mapa.nome}
+                                        </CardTitle>
+                                    </div>
+                                )}
                             </div>
-                            <CardTitle className="text-center text-base group-hover:text-primary transition-colors">
-                                {mapa.nome}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <CardDescription className="text-center text-xs">
-                                Clique para ver detalhes
-                            </CardDescription>
-                        </CardContent>
-                    </Card>
-                ))}
+                        </Card>
+                    );
+                })}
             </div>
 
             {/* Dialog de Detalhes */}
@@ -246,15 +298,35 @@ export default function MapasPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="mt-4 space-y-4">
-                        {/* Imagem do Mapa (placeholder - pode ser substituído por imagens reais) */}
-                        <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center">
-                            <div className="text-center">
-                                <Map className="h-16 w-16 mx-auto text-muted-foreground mb-2" />
-                                <p className="text-sm text-muted-foreground">
-                                    {selectedMapa?.nome}
-                                </p>
+                        {/* Imagem do Mapa */}
+                        {selectedMapa && getMapImagePath(selectedMapa.nome) ? (
+                            <div className="relative w-full h-64 rounded-lg overflow-hidden">
+                                <Image
+                                    src={getMapImagePath(selectedMapa.nome)!}
+                                    alt={selectedMapa.nome}
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 768px) 100vw, 768px"
+                                />
+                                {/* Overlay escurecido */}
+                                <div className="absolute inset-0 bg-black/60" />
+                                {/* Nome do mapa sobre a imagem */}
+                                <div className="absolute inset-0 flex items-center justify-center z-10">
+                                    <h3 className="text-2xl font-bold text-white drop-shadow-lg">
+                                        {selectedMapa.nome}
+                                    </h3>
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center">
+                                <div className="text-center">
+                                    <Map className="h-16 w-16 mx-auto text-muted-foreground mb-2" />
+                                    <p className="text-sm text-muted-foreground">
+                                        {selectedMapa?.nome}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Descrição */}
                         <div className="space-y-2">
