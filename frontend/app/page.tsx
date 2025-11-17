@@ -3,16 +3,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { jogadorService } from "@/services/JogadorService";
 import { Jogador } from "@/types/jogador";
-import {
-    Users,
-    Shield,
-    Map,
-    TrendingUp,
-    Activity,
-    Clock,
-    BarChart3,
-} from "lucide-react";
+import { Users, Shield, Map, Activity, Clock, BarChart3 } from "lucide-react";
 import { MetricCard } from "./(Inicio)/Dashboard/components/MetricCard";
+import { KdMetricCard } from "./(Inicio)/Dashboard/components/KdMetricCard";
 import { ActionCard } from "./(Inicio)/Dashboard/components/ActionCard";
 import { PerformanceChart } from "./(Inicio)/Dashboard/components/PerformanceChart";
 import { RecentActivity } from "./(Inicio)/Dashboard/components/RecentActivity";
@@ -146,12 +139,7 @@ export default function HomePage() {
                         change={{ value: 12, isPositive: true }}
                         icon={<Users className="h-4 w-4" />}
                     />
-                    <MetricCard
-                        title="K/D Médio"
-                        value={metrics.avgKd}
-                        change={{ value: 0.3, isPositive: true }}
-                        icon={<TrendingUp className="h-4 w-4" />}
-                    />
+                    <KdMetricCard avgKd={metrics.avgKd} players={players} />
                     <MetricCard
                         title="Win Rate Médio"
                         value={`${metrics.avgWinRate}%`}

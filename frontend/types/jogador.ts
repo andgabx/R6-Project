@@ -97,3 +97,9 @@ export interface RankLog {
   rankNovo: string;
   dataAlteracao: string;
 }
+
+// Estrutura para jogador com maior K/D
+export interface MaxKdPlayer {
+  nickname: string;
+  kd: number;
+}

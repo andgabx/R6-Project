@@ -1,5 +1,5 @@
 import api from "../lib/api";
-import { Jogador, JogadorRequest, JogadorPerfil, RankGroup, RankLog } from "../types/jogador";
+import { Jogador, JogadorRequest, JogadorPerfil, RankGroup, RankLog, MaxKdPlayer } from "../types/jogador";
 
 export const jogadorService = {
   listAll: async (): Promise<Jogador[]> => {
@@ -53,6 +53,11 @@ export const jogadorService = {
 
   getRankLogs: async (): Promise<RankLog[]> => {
     const response = await api.get<RankLog[]>("/stats/trigger/rank-logs");
+    return response.data;
+  },
+
+  getMaxKdPlayer: async (): Promise<MaxKdPlayer[]> => {
+    const response = await api.get<MaxKdPlayer[]>("/stats/query/sub-max-kd");
     return response.data;
   }
 };
