@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { operadorService } from "@/services/OperadorService";
-import { Operador } from "@/types/operador";
+import { Operador, MetaAtaque } from "@/types/operador";
 import {
     Card,
     CardContent,
@@ -18,12 +18,22 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Loader2, Sword, Zap } from "lucide-react";
+import {
+    Shield,
+    Loader2,
+    Sword,
+    Zap,
+    Users,
+    TrendingUp,
+    Gauge,
+    ShieldCheck,
+} from "lucide-react";
 import OperatorIcon from "@/components/ui/OperatorIcon";
 import { cn } from "@/lib/utils";
 
 export default function OperadoresPage() {
     const [operadores, setOperadores] = useState<Operador[]>([]);
+    const [metaAtaque, setMetaAtaque] = useState<MetaAtaque[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedOperador, setSelectedOperador] = useState<Operador | null>(
         null
@@ -32,20 +42,35 @@ export default function OperadoresPage() {
     const [filter, setFilter] = useState<"all" | "Ataque" | "Defesa">("all");
 
     useEffect(() => {
-        const fetchOperadores = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
-                const data = await operadorService.listAll();
-                setOperadores(data);
+                const [operadoresData, metaAtaqueData] = await Promise.all([
+                    operadorService.listAll(),
+                    operadorService.getMetaAtaque(),
+                ]);
+                setOperadores(operadoresData);
+                setMetaAtaque(metaAtaqueData);
             } catch (error) {
-                console.error("Erro ao buscar operadores:", error);
+                console.error("Erro ao buscar dados:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchOperadores();
+        fetchData();
     }, []);
+
+    // Função para buscar meta do operador selecionado
+    const selectedOperadorMeta = useMemo(() => {
+        if (!selectedOperador || selectedOperador.funcao !== "Ataque") {
+            return null;
+        }
+        return (
+            metaAtaque.find((meta) => meta.nome === selectedOperador.nome) ||
+            null
+        );
+    }, [selectedOperador, metaAtaque]);
 
     const handleCardClick = (operador: Operador) => {
         setSelectedOperador(operador);
@@ -268,6 +293,123 @@ export default function OperadoresPage() {
                                                 </CardContent>
                                             </Card>
                                         ))}
+                                    </div>
+                                </div>
+                            )}
+
+                        {/* Meta do Operador (apenas para ataque) */}
+                        {selectedOperador?.funcao === "Ataque" &&
+                            selectedOperadorMeta && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <TrendingUp className="h-5 w-5 text-primary" />
+                                        <h3 className="font-semibold text-lg">
+                                            Estatísticas de Uso
+                                        </h3>
+                                    </div>
+                                    <div className="pl-7 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <Card>
+                                            <CardHeader className="pb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Gauge className="h-4 w-4 text-muted-foreground" />
+                                                    <CardTitle className="text-sm">
+                                                        Velocidade
+                                                    </CardTitle>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-2xl font-bold">
+                                                    {
+                                                        selectedOperadorMeta.velocidade
+                                                    }
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+                                        <Card>
+                                            <CardHeader className="pb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                                                    <CardTitle className="text-sm">
+                                                        Blindagem
+                                                    </CardTitle>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-2xl font-bold">
+                                                    {
+                                                        selectedOperadorMeta.blindagem
+                                                    }
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+                                        <Card>
+                                            <CardHeader className="pb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Users className="h-4 w-4 text-muted-foreground" />
+                                                    <CardTitle className="text-sm">
+                                                        Jogadores
+                                                    </CardTitle>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-2xl font-bold">
+                                                    {
+                                                        selectedOperadorMeta.totalJogadoresQueUsam
+                                                    }
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    jogadores usando
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+                                        <Card>
+                                            <CardHeader className="pb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                                                    <CardTitle className="text-sm">
+                                                        Win Rate Médio
+                                                    </CardTitle>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-2xl font-bold">
+                                                    {selectedOperadorMeta.winrateMedioEntreEles
+                                                        ? selectedOperadorMeta.winrateMedioEntreEles.toFixed(
+                                                              1
+                                                          )
+                                                        : "N/A"}
+                                                </p>
+                                                {selectedOperadorMeta.winrateMedioEntreEles && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        entre os usuários
+                                                    </p>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                    <div className="pl-7 mt-4 space-y-2">
+                                        <div>
+                                            <p className="text-xs text-muted-foreground mb-1">
+                                                Unidade Especial
+                                            </p>
+                                            <p className="text-sm font-medium">
+                                                {
+                                                    selectedOperadorMeta.unidadeEspecial
+                                                }
+                                            </p>
+                                        </div>
+                                        {selectedOperadorMeta.gadgetUnicoAtaque && (
+                                            <div>
+                                                <p className="text-xs text-muted-foreground mb-1">
+                                                    Gadget Único
+                                                </p>
+                                                <p className="text-sm font-medium">
+                                                    {
+                                                        selectedOperadorMeta.gadgetUnicoAtaque
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}

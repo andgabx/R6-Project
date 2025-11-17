@@ -2,7 +2,7 @@
 
 // Estrutura para a requisição de criação/atualização
 export interface JogadorOperadorRequest {
-  operadorId: number;
+  nomeOperador: string;
   winrate: number;
 }
 

@@ -1,26 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-    Card,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserPlus, Plus, X } from "lucide-react";
 import { Jogador, JogadorRequest } from "@/types/jogador";
 import { jogadorService } from "@/services/JogadorService";
+import { toast } from "sonner";
 
 interface CreateProps {
     setJogador: (jogador: Jogador | null) => void;
-    loading: boolean;
     setLoading: (loading: boolean) => void;
-    error: string;
     setError: (error: string) => void;
     handleError: (error: unknown, message: string) => void;
 }
 
-export default function Create({ setJogador, loading, setLoading, error, setError, handleError }: CreateProps) {
+export default function Create({
+    setJogador,
+    setLoading,
+    setError,
+    handleError,
+}: CreateProps) {
     const [formData, setFormData] = useState<JogadorRequest>({
         nickname: "",
         dados: {
@@ -35,22 +37,95 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
             preferenciaJogo: "Casual",
             mapaFavoritoId: null,
             mapaMaisVitoriasId: null,
-            mapaMaisDerrotasId: null
+            mapaMaisDerrotasId: null,
         },
         operadoresAtaque: [],
-        operadoresDefesa: []
+        operadoresDefesa: [],
     });
 
-    const [novoOperadorAtaque, setNovoOperadorAtaque] = useState({ operadorId: 0, winrate: 0 });
-    const [novoOperadorDefesa, setNovoOperadorDefesa] = useState({ operadorId: 0, winrate: 0 });
+    const [novoOperadorAtaque, setNovoOperadorAtaque] = useState({
+        nomeOperador: "",
+        winrate: 0,
+    });
+    const [novoOperadorDefesa, setNovoOperadorDefesa] = useState({
+        nomeOperador: "",
+        winrate: 0,
+    });
+
+    // Ref para manter sempre o estado atualizado do formData
+    const formDataRef = useRef(formData);
+
+    // Atualizar ref sempre que formData mudar
+    useEffect(() => {
+        formDataRef.current = formData;
+    }, [formData]);
 
     const criarJogador = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             setLoading(true);
             setError("");
-            const created = await jogadorService.create(formData);
+
+            // Usar o ref para garantir que temos o estado mais atualizado
+            const currentFormData = formDataRef.current;
+
+            // Debug: verificar estado do formData
+            console.log("=== DEBUG: Estado do formData ===");
+            console.log("formData completo:", currentFormData);
+            console.log("operadoresAtaque:", currentFormData.operadoresAtaque);
+            console.log("operadoresDefesa:", currentFormData.operadoresDefesa);
+            console.log(
+                "Tamanho do array operadoresAtaque:",
+                currentFormData.operadoresAtaque.length
+            );
+            console.log(
+                "Tamanho do array operadoresDefesa:",
+                currentFormData.operadoresDefesa.length
+            );
+
+            // Preparar dados para envio - garantir formato correto
+            const dadosParaEnvio: JogadorRequest = {
+                nickname: currentFormData.nickname,
+                dados: {
+                    nivel: currentFormData.dados.nivel,
+                    winrate: currentFormData.dados.winrate,
+                    rankJogador: currentFormData.dados.rankJogador,
+                    headshot: currentFormData.dados.headshot,
+                    kd: currentFormData.dados.kd,
+                    plataforma: currentFormData.dados.plataforma,
+                    horasJogadas: currentFormData.dados.horasJogadas,
+                    mainRole: currentFormData.dados.mainRole,
+                    preferenciaJogo: currentFormData.dados.preferenciaJogo,
+                    mapaFavoritoId: currentFormData.dados.mapaFavoritoId ?? 0,
+                    mapaMaisVitoriasId:
+                        currentFormData.dados.mapaMaisVitoriasId ?? 0,
+                    mapaMaisDerrotasId:
+                        currentFormData.dados.mapaMaisDerrotasId ?? 0,
+                },
+                operadoresAtaque: currentFormData.operadoresAtaque.map(
+                    (op) => ({
+                        nomeOperador: op.nomeOperador,
+                        winrate: op.winrate,
+                    })
+                ),
+                operadoresDefesa: currentFormData.operadoresDefesa.map(
+                    (op) => ({
+                        nomeOperador: op.nomeOperador,
+                        winrate: op.winrate,
+                    })
+                ),
+            };
+
+            // Debug: mostrar JSON no console
+            console.log("=== JSON sendo enviado para criar jogador ===");
+            console.log(JSON.stringify(dadosParaEnvio, null, 2));
+
+            const created = await jogadorService.create(dadosParaEnvio);
             setJogador(created);
+            toast.success("Jogador criado com sucesso!", {
+                position: "bottom-center",
+            });
+
             // Reset do form
             setFormData({
                 nickname: "",
@@ -62,17 +137,24 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
                     kd: 1.0,
                     plataforma: "PC",
                     horasJogadas: 0,
-                    mainRole: "Suporte",
-                    preferenciaJogo: "Casual",
+                    mainRole: "Support",
+                    preferenciaJogo: "Solo",
                     mapaFavoritoId: null,
                     mapaMaisVitoriasId: null,
-                    mapaMaisDerrotasId: null
+                    mapaMaisDerrotasId: null,
                 },
                 operadoresAtaque: [],
-                operadoresDefesa: []
+                operadoresDefesa: [],
             });
-            alert("Jogador criado com sucesso!");
+            setNovoOperadorAtaque({ nomeOperador: "", winrate: 0 });
+            setNovoOperadorDefesa({ nomeOperador: "", winrate: 0 });
         } catch (error) {
+            console.error("Erro ao criar jogador:", error);
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao criar jogador: ${errorMessage}`, {
+                position: "bottom-center",
+            });
             handleError(error, "Erro ao criar jogador");
         } finally {
             setLoading(false);
@@ -84,58 +166,165 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
         section?: string
     ) => {
         const { name, value } = e.target;
-        
+
         if (section === "dados") {
-            const isNumeric = ["nivel", "winrate", "headshot", "kd", "horasJogadas", "mapaFavoritoId", "mapaMaisVitoriasId", "mapaMaisDerrotasId"].includes(name);
-            setFormData({
-                ...formData,
+            const isNumeric = [
+                "nivel",
+                "winrate",
+                "headshot",
+                "kd",
+                "horasJogadas",
+                "mapaFavoritoId",
+                "mapaMaisVitoriasId",
+                "mapaMaisDerrotasId",
+            ].includes(name);
+            setFormData((prev) => ({
+                ...prev,
                 dados: {
-                    ...formData.dados,
-                    [name]: isNumeric ? (value ? Number(value) : (name.includes("Id") ? null : 0)) : value,
-                }
-            });
+                    ...prev.dados,
+                    [name]: isNumeric
+                        ? value
+                            ? Number(value)
+                            : name.includes("Id")
+                            ? null
+                            : 0
+                        : value,
+                },
+            }));
         } else {
-            setFormData({
-                ...formData,
+            setFormData((prev) => ({
+                ...prev,
                 [name]: value,
-            });
+            }));
         }
     };
 
     const adicionarOperadorAtaque = () => {
-        if (novoOperadorAtaque.operadorId <= 0 || novoOperadorAtaque.winrate <= 0) {
+        if (
+            !novoOperadorAtaque.nomeOperador ||
+            novoOperadorAtaque.winrate <= 0
+        ) {
+            console.log(
+                "Validação falhou - nomeOperador:",
+                novoOperadorAtaque.nomeOperador,
+                "winrate:",
+                novoOperadorAtaque.winrate
+            );
             return;
         }
-        setFormData({
-            ...formData,
-            operadoresAtaque: [...formData.operadoresAtaque, { ...novoOperadorAtaque }]
+        console.log("=== ADICIONANDO OPERADOR DE ATAQUE ===");
+        console.log("Operador a ser adicionado:", novoOperadorAtaque);
+        console.log("Estado atual do formData antes:", formDataRef.current);
+        console.log(
+            "Array atual de operadoresAtaque:",
+            formDataRef.current.operadoresAtaque
+        );
+
+        setFormData((prev) => {
+            const novoArray = [
+                ...prev.operadoresAtaque,
+                {
+                    nomeOperador: novoOperadorAtaque.nomeOperador,
+                    winrate: novoOperadorAtaque.winrate,
+                },
+            ];
+            console.log("Novo array de operadoresAtaque:", novoArray);
+            console.log("Estado completo após adicionar:", {
+                ...prev,
+                operadoresAtaque: novoArray,
+            });
+            return {
+                ...prev,
+                operadoresAtaque: novoArray,
+            };
         });
-        setNovoOperadorAtaque({ operadorId: 0, winrate: 0 });
+
+        // Aguardar um pouco e verificar se foi atualizado
+        setTimeout(() => {
+            console.log(
+                "Estado do formData após adicionar (com delay):",
+                formDataRef.current
+            );
+            console.log(
+                "Array de operadoresAtaque após adicionar:",
+                formDataRef.current.operadoresAtaque
+            );
+        }, 100);
+
+        setNovoOperadorAtaque({ nomeOperador: "", winrate: 0 });
     };
 
     const adicionarOperadorDefesa = () => {
-        if (novoOperadorDefesa.operadorId <= 0 || novoOperadorDefesa.winrate <= 0) {
+        if (
+            !novoOperadorDefesa.nomeOperador ||
+            novoOperadorDefesa.winrate <= 0
+        ) {
+            console.log(
+                "Validação falhou - nomeOperador:",
+                novoOperadorDefesa.nomeOperador,
+                "winrate:",
+                novoOperadorDefesa.winrate
+            );
             return;
         }
-        setFormData({
-            ...formData,
-            operadoresDefesa: [...formData.operadoresDefesa, { ...novoOperadorDefesa }]
+        console.log("=== ADICIONANDO OPERADOR DE DEFESA ===");
+        console.log("Operador a ser adicionado:", novoOperadorDefesa);
+        console.log("Estado atual do formData antes:", formDataRef.current);
+        console.log(
+            "Array atual de operadoresDefesa:",
+            formDataRef.current.operadoresDefesa
+        );
+
+        setFormData((prev) => {
+            const novoArray = [
+                ...prev.operadoresDefesa,
+                {
+                    nomeOperador: novoOperadorDefesa.nomeOperador,
+                    winrate: novoOperadorDefesa.winrate,
+                },
+            ];
+            console.log("Novo array de operadoresDefesa:", novoArray);
+            console.log("Estado completo após adicionar:", {
+                ...prev,
+                operadoresDefesa: novoArray,
+            });
+            return {
+                ...prev,
+                operadoresDefesa: novoArray,
+            };
         });
-        setNovoOperadorDefesa({ operadorId: 0, winrate: 0 });
+
+        // Aguardar um pouco e verificar se foi atualizado
+        setTimeout(() => {
+            console.log(
+                "Estado do formData após adicionar (com delay):",
+                formDataRef.current
+            );
+            console.log(
+                "Array de operadoresDefesa após adicionar:",
+                formDataRef.current.operadoresDefesa
+            );
+        }, 100);
+
+        setNovoOperadorDefesa({ nomeOperador: "", winrate: 0 });
     };
 
     const removerOperadorAtaque = (index: number) => {
-        setFormData({
-            ...formData,
-            operadoresAtaque: formData.operadoresAtaque.filter((_, i) => i !== index)
-        });
+        setFormData((prev) => ({
+            ...prev,
+            operadoresAtaque: prev.operadoresAtaque.filter(
+                (_, i) => i !== index
+            ),
+        }));
     };
 
     const removerOperadorDefesa = (index: number) => {
-        setFormData({
-            ...formData,
-            operadoresDefesa: formData.operadoresDefesa.filter((_, i) => i !== index)
-        });
+        setFormData((prev) => ({
+            ...prev,
+            operadoresDefesa: prev.operadoresDefesa.filter(
+                (_, i) => i !== index
+            ),
+        }));
     };
 
     const jogadorForm = (
@@ -258,7 +447,9 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
                             />
                         </div>
                         <div>
-                            <Label htmlFor="preferenciaJogo">Preferência de Jogo</Label>
+                            <Label htmlFor="preferenciaJogo">
+                                Preferência de Jogo
+                            </Label>
                             <Input
                                 id="preferenciaJogo"
                                 name="preferenciaJogo"
@@ -269,7 +460,9 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
                             />
                         </div>
                         <div>
-                            <Label htmlFor="mapaFavoritoId">ID Mapa Favorito (Opcional)</Label>
+                            <Label htmlFor="mapaFavoritoId">
+                                ID Mapa Favorito (Opcional)
+                            </Label>
                             <Input
                                 id="mapaFavoritoId"
                                 name="mapaFavoritoId"
@@ -280,7 +473,9 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
                             />
                         </div>
                         <div>
-                            <Label htmlFor="mapaMaisVitoriasId">ID Mapa Mais Vitórias (Opcional)</Label>
+                            <Label htmlFor="mapaMaisVitoriasId">
+                                ID Mapa Mais Vitórias (Opcional)
+                            </Label>
                             <Input
                                 id="mapaMaisVitoriasId"
                                 name="mapaMaisVitoriasId"
@@ -291,7 +486,9 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
                             />
                         </div>
                         <div>
-                            <Label htmlFor="mapaMaisDerrotasId">ID Mapa Mais Derrotas (Opcional)</Label>
+                            <Label htmlFor="mapaMaisDerrotasId">
+                                ID Mapa Mais Derrotas (Opcional)
+                            </Label>
                             <Input
                                 id="mapaMaisDerrotasId"
                                 name="mapaMaisDerrotasId"
@@ -306,13 +503,20 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
 
                 {/* Operadores de Ataque */}
                 <fieldset className="border p-4 rounded space-y-4">
-                    <legend className="font-semibold">Operadores de Ataque</legend>
-                    
+                    <legend className="font-semibold">
+                        Operadores de Ataque
+                    </legend>
+
                     {/* Lista de operadores de ataque */}
                     {formData.operadoresAtaque.map((op, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                        <div
+                            key={index}
+                            className="flex items-center gap-2 p-2 border rounded"
+                        >
                             <div className="flex-1">
-                                <span>Operador ID: {op.operadorId} - Winrate: {op.winrate}%</span>
+                                <span>
+                                    {op.nomeOperador} - Winrate: {op.winrate}%
+                                </span>
                             </div>
                             <Button
                                 type="button"
@@ -324,32 +528,39 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
                             </Button>
                         </div>
                     ))}
-                    
+
                     {/* Adicionar novo operador de ataque */}
                     <div className="flex gap-2">
                         <Input
-                            type="number"
-                            placeholder="ID do Operador"
-                            value={novoOperadorAtaque.operadorId || ""}
-                            onChange={(e) => setNovoOperadorAtaque({
-                                ...novoOperadorAtaque,
-                                operadorId: parseInt(e.target.value) || 0
-                            })}
+                            type="text"
+                            placeholder="Nome do Operador"
+                            value={novoOperadorAtaque.nomeOperador}
+                            onChange={(e) =>
+                                setNovoOperadorAtaque({
+                                    ...novoOperadorAtaque,
+                                    nomeOperador: e.target.value,
+                                })
+                            }
                         />
                         <Input
                             type="number"
                             step="0.01"
                             placeholder="Winrate"
                             value={novoOperadorAtaque.winrate || ""}
-                            onChange={(e) => setNovoOperadorAtaque({
-                                ...novoOperadorAtaque,
-                                winrate: parseFloat(e.target.value) || 0
-                            })}
+                            onChange={(e) =>
+                                setNovoOperadorAtaque({
+                                    ...novoOperadorAtaque,
+                                    winrate: parseFloat(e.target.value) || 0,
+                                })
+                            }
                         />
                         <Button
                             type="button"
                             onClick={adicionarOperadorAtaque}
-                            disabled={!novoOperadorAtaque.operadorId || !novoOperadorAtaque.winrate}
+                            disabled={
+                                !novoOperadorAtaque.nomeOperador ||
+                                !novoOperadorAtaque.winrate
+                            }
                         >
                             <Plus className="h-4 w-4" />
                         </Button>
@@ -358,13 +569,20 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
 
                 {/* Operadores de Defesa */}
                 <fieldset className="border p-4 rounded space-y-4">
-                    <legend className="font-semibold">Operadores de Defesa</legend>
-                    
+                    <legend className="font-semibold">
+                        Operadores de Defesa
+                    </legend>
+
                     {/* Lista de operadores de defesa */}
                     {formData.operadoresDefesa.map((op, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                        <div
+                            key={index}
+                            className="flex items-center gap-2 p-2 border rounded"
+                        >
                             <div className="flex-1">
-                                <span>Operador ID: {op.operadorId} - Winrate: {op.winrate}%</span>
+                                <span>
+                                    {op.nomeOperador} - Winrate: {op.winrate}%
+                                </span>
                             </div>
                             <Button
                                 type="button"
@@ -376,32 +594,39 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
                             </Button>
                         </div>
                     ))}
-                    
+
                     {/* Adicionar novo operador de defesa */}
                     <div className="flex gap-2">
                         <Input
-                            type="number"
-                            placeholder="ID do Operador"
-                            value={novoOperadorDefesa.operadorId || ""}
-                            onChange={(e) => setNovoOperadorDefesa({
-                                ...novoOperadorDefesa,
-                                operadorId: parseInt(e.target.value) || 0
-                            })}
+                            type="text"
+                            placeholder="Nome do Operador"
+                            value={novoOperadorDefesa.nomeOperador}
+                            onChange={(e) =>
+                                setNovoOperadorDefesa({
+                                    ...novoOperadorDefesa,
+                                    nomeOperador: e.target.value,
+                                })
+                            }
                         />
                         <Input
                             type="number"
                             step="0.01"
                             placeholder="Winrate"
                             value={novoOperadorDefesa.winrate || ""}
-                            onChange={(e) => setNovoOperadorDefesa({
-                                ...novoOperadorDefesa,
-                                winrate: parseFloat(e.target.value) || 0
-                            })}
+                            onChange={(e) =>
+                                setNovoOperadorDefesa({
+                                    ...novoOperadorDefesa,
+                                    winrate: parseFloat(e.target.value) || 0,
+                                })
+                            }
                         />
                         <Button
                             type="button"
                             onClick={adicionarOperadorDefesa}
-                            disabled={!novoOperadorDefesa.operadorId || !novoOperadorDefesa.winrate}
+                            disabled={
+                                !novoOperadorDefesa.nomeOperador ||
+                                !novoOperadorDefesa.winrate
+                            }
                         >
                             <Plus className="h-4 w-4" />
                         </Button>
@@ -418,9 +643,7 @@ export default function Create({ setJogador, loading, setLoading, error, setErro
 
     return (
         <div>
-            <h2 className="text-2xl font-bold mb-4">
-                Criar Novo Jogador
-            </h2>
+            <h2 className="text-2xl font-bold mb-4">Criar Novo Jogador</h2>
             <Card className="overflow-y-auto">
                 {jogadorForm(criarJogador, "Criar Jogador")}
             </Card>

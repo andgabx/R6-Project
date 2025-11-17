@@ -55,16 +55,16 @@ export const FavoriteMapChart = ({ players }: FavoriteMapChartProps) => {
     return (
         <ChartContainer
             config={favoriteMapChartConfig}
-            className="w-full h-[400px]"
+            className="w-full h-full"
         >
-            <Card className="flex flex-col h-full">
-                <CardHeader className="items-center pb-0">
+            <Card className="h-full flex flex-col">
+                <CardHeader className="flex-shrink-0">
                     <CardTitle>Mapas Favoritos</CardTitle>
                     <CardDescription>
                         Análise da distribuição dos mapas favoritos
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-1 items-center justify-center pb-0">
+                <CardContent className="flex-1 flex items-center justify-center min-h-0">
                     <div className="mx-auto aspect-square w-full max-w-[250px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -88,13 +88,14 @@ export const FavoriteMapChart = ({ players }: FavoriteMapChartProps) => {
                         </ResponsiveContainer>
                     </div>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex justify-center items-center p-4 text-sm flex-shrink-0">
                     <ChartLegendContent
                         payload={favoriteMapChartData.map((item) => ({
                             value: item.name,
                             type: "circle",
                             color: favoriteMapChartConfig[item.name]?.color,
                         }))}
+                        className="flex flex-wrap justify-center items-center gap-3 gap-y-2"
                     />
                 </CardFooter>
             </Card>

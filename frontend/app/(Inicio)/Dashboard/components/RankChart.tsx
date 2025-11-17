@@ -117,15 +117,15 @@ export const RankChart = () => {
     }
 
     return (
-        <ChartContainer config={rankChartConfig} className="w-full h-[400px]">
-            <Card className="flex flex-col h-full overflow-hidden">
-                <CardHeader className="items-center pb-0 flex-shrink-0">
+        <ChartContainer config={rankChartConfig} className="w-full h-full">
+            <Card className="h-full flex flex-col">
+                <CardHeader className="flex-shrink-0">
                     <CardTitle>Jogadores por Rank</CardTitle>
                     <CardDescription>
                         Distribuição de jogadores por rank
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-1 items-center justify-center pb-0 min-h-0">
+                <CardContent className="flex-1 flex items-center justify-center min-h-0">
                     <div className="mx-auto aspect-square w-full max-w-[250px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -154,18 +154,16 @@ export const RankChart = () => {
                     </div>
                 </CardContent>
 
-                <CardFooter className="flex justify-center items-center p-4 text-sm flex-shrink-0 w-full">
-                    <div className="w-full">
-                        <ChartLegendContent
-                            payload={rankChartData.map((item) => ({
-                                value: item.name,
-                                dataKey: item.name,
-                                type: "circle",
-                                color: rankChartConfig[item.name]?.color,
-                            }))}
-                            className="flex flex-wrap justify-center items-center gap-3 gap-y-2"
-                        />
-                    </div>
+                <CardFooter className="flex justify-center items-center p-4 text-sm flex-shrink-0">
+                    <ChartLegendContent
+                        payload={rankChartData.map((item) => ({
+                            value: item.name,
+                            dataKey: item.name,
+                            type: "circle",
+                            color: rankChartConfig[item.name]?.color,
+                        }))}
+                        className="flex flex-wrap justify-center items-center gap-3 gap-y-2"
+                    />
                 </CardFooter>
             </Card>
         </ChartContainer>

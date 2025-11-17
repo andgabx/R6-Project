@@ -87,17 +87,6 @@ export default function HomePage() {
         };
     }, [players]);
 
-    // Dados para o gráfico de performance (mock data por enquanto)
-    const performanceData = [
-        { month: "Jan", value: 1200 },
-        { month: "Fev", value: 1900 },
-        { month: "Mar", value: 1500 },
-        { month: "Abr", value: 2100 },
-        { month: "Mai", value: 1800 },
-        { month: "Jun", value: 2400 },
-        { month: "Jul", value: 2200 },
-    ];
-
     return (
         <div className="bg-background min-h-screen">
             <main className="container mx-auto px-4 py-6 md:py-8">
@@ -176,7 +165,7 @@ export default function HomePage() {
                     {/* Performance Chart - Takes 2 columns */}
                     <div className="lg:col-span-2 flex">
                         <div className="w-full flex flex-col">
-                            <PerformanceChart data={performanceData} />
+                            <PerformanceChart players={players} />
                         </div>
                     </div>
 

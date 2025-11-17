@@ -59,22 +59,22 @@ export const KdHorasChart = ({ players }: KdHorasChartProps) => {
     return (
         <ChartContainer
             config={chartConfig}
-            className="w-full h-[400px]"
+            className="w-full h-full"
         >
-            <Card className="flex flex-col h-full">
-                <CardHeader className="items-center pb-0">
+            <Card className="h-full flex flex-col">
+                <CardHeader className="flex-shrink-0">
                     <CardTitle>K/D vs. Horas Jogadas</CardTitle>
                     <CardDescription>
                         Relação entre K/D e horas de jogo de cada jogador
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="flex-1">
+                <CardContent className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <ScatterChart
                             data={chartData}
                             margin={{
                                 top: 20,
-                                right: 30, // Dê espaço para os labels do eixo Y
+                                right: 30,
                                 bottom: 20,
                                 left: 10,
                             }}
@@ -85,7 +85,6 @@ export const KdHorasChart = ({ players }: KdHorasChartProps) => {
                                 type="number"
                                 dataKey="horas"
                                 name={`Horas Jogadas`}
-                                // Formata o label do eixo X
                                 tickFormatter={(value) => `${value}`}
                                 unit="h"
                             />
@@ -93,14 +92,12 @@ export const KdHorasChart = ({ players }: KdHorasChartProps) => {
                                 type="number"
                                 dataKey="kd"
                                 name="K/D"
-                                // Formata o label do eixo Y
                                 tickFormatter={(value) => value.toFixed(2)}
                             />
                             
                             <ChartTooltip
                                 cursor={false}
                                 content={<ChartTooltipContent 
-                                    // Mostra o nome do jogador no título do tooltip
                                     labelFormatter={(label, payload) => {
                                         return payload?.[0]?.payload?.nome || "";
                                     }}
@@ -108,16 +105,16 @@ export const KdHorasChart = ({ players }: KdHorasChartProps) => {
                             />
                             
                             <Scatter
-                                name="K/D" // Conecta ao chartConfig 'kd'
-                                dataKey="kd" // Necessário para o tooltip funcionar bem
-                                fill="var(--color-kd)" // Cor vinda do chartConfig
-                                shape="square" // Forma de quadrado, como na referência
+                                name="K/D"
+                                dataKey="kd"
+                                fill="var(--color-kd)"
+                                shape="square"
                             />
                         </ScatterChart>
                     </ResponsiveContainer>
                 </CardContent>
                 
-                <CardFooter className="flex justify-center items-center p-4 text-sm">
+                <CardFooter className="flex justify-center items-center p-4 text-sm flex-shrink-0">
                     <ChartLegendContent
                         payload={[{
                             value: "K/D do Jogador",

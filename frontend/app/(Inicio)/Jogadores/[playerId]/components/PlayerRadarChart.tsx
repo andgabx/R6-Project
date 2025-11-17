@@ -41,24 +41,69 @@ export function PlayerRadarChart({ data, title, description }: PlayerRadarChartP
                     config={{
                         value: {
                             label: "Value",
-                            color: "hsl(var(--primary))",
+                            color: "var(--chart-1)",
                         },
                     }}
-                    className="mx-auto aspect-square h-[250px]"
+                    className="mx-auto aspect-square h-[300px]"
                 >
-                    <RadarChart data={data}>
+                    <RadarChart
+                        data={data}
+                        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                    >
+                        <defs>
+                            <linearGradient id="radarFill" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.4} />
+                                <stop offset="100%" stopColor="var(--chart-2)" stopOpacity={0.2} />
+                            </linearGradient>
+                        </defs>
                         <ChartTooltip
                             cursor={false}
-                            content={<ChartTooltipContent hideLabel />}
+                            content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                    return (
+                                        <div className="bg-popover border border-border rounded-lg p-2 shadow-lg">
+                                            <p className="text-popover-foreground font-semibold">
+                                                {payload[0].payload.subject}
+                                            </p>
+                                            <p className="text-muted-foreground text-sm">
+                                                {payload[0].value}%
+                                            </p>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            }}
                         />
-                        <PolarGrid />
-                        <PolarAngleAxis dataKey="subject" />
-                        <PolarRadiusAxis />
+                        <PolarGrid
+                            stroke="var(--border)"
+                            strokeWidth={1}
+                            strokeOpacity={0.3}
+                            gridType="polygon"
+                        />
+                        <PolarAngleAxis
+                            dataKey="subject"
+                            tick={{
+                                fill: "var(--foreground)",
+                                fontSize: 12,
+                                fontWeight: 500,
+                            }}
+                            tickLine={{ stroke: "var(--border)", strokeOpacity: 0.5 }}
+                        />
+                        <PolarRadiusAxis
+                            angle={90}
+                            domain={[0, 100]}
+                            tick={false}
+                            axisLine={false}
+                        />
                         <Radar
+                            name="Performance"
                             dataKey="value"
-                            fill="var(--color-value)"
+                            stroke="var(--chart-1)"
+                            fill="url(#radarFill)"
                             fillOpacity={0.6}
-                            stroke="var(--color-value)"
+                            strokeWidth={2}
+                            dot={{ fill: "var(--chart-1)", r: 4 }}
+                            activeDot={{ r: 6, fill: "var(--chart-2)" }}
                         />
                     </RadarChart>
                 </ChartContainer>

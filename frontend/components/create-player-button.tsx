@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -11,14 +11,30 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { UserPlus, Plus, X } from "lucide-react";
 import { JogadorRequest } from "@/types/jogador";
 import { jogadorService } from "@/services/JogadorService";
+import { mapaService } from "@/services/MapaService";
+import { Mapa } from "@/types/mapa";
+import { operadorService } from "@/services/OperadorService";
+import { Operador } from "@/types/operador";
+import { toast } from "sonner";
 
 export function CreatePlayerButton() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string>("");
+    const [mapas, setMapas] = useState<Mapa[]>([]);
+    const [operadores, setOperadores] = useState<Operador[]>([]);
+    const [rankNome, setRankNome] = useState<string>("Bronze");
+    const [rankNumero, setRankNumero] = useState<string>("I");
     const [formData, setFormData] = useState<JogadorRequest>({
         nickname: "",
         dados: {
@@ -29,8 +45,8 @@ export function CreatePlayerButton() {
             kd: 1.0,
             plataforma: "PC",
             horasJogadas: 0,
-            mainRole: "Suporte",
-            preferenciaJogo: "Casual",
+            mainRole: "Support",
+            preferenciaJogo: "Solo",
             mapaFavoritoId: null,
             mapaMaisVitoriasId: null,
             mapaMaisDerrotasId: null,
@@ -41,12 +57,78 @@ export function CreatePlayerButton() {
 
     const [novoOperadorAtaque, setNovoOperadorAtaque] = useState({
         operadorId: 0,
+        operadorNome: "",
         winrate: 0,
     });
     const [novoOperadorDefesa, setNovoOperadorDefesa] = useState({
         operadorId: 0,
+        operadorNome: "",
         winrate: 0,
     });
+
+    // Funções auxiliares para operadores
+
+    const operadoresAtaque = operadores.filter((o) => o.funcao === "Ataque");
+    const operadoresDefesa = operadores.filter((o) => o.funcao === "Defesa");
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [mapasData, operadoresData] = await Promise.all([
+                    mapaService.listAll(),
+                    operadorService.listAll(),
+                ]);
+                setMapas(mapasData);
+                setOperadores(operadoresData);
+            } catch (error) {
+                console.error("Erro ao buscar dados:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    // Handler para atualizar rank
+    const handleRankChange = (nome: string, numero: string) => {
+        setRankNome(nome);
+        setRankNumero(numero);
+        const rankCompleto = numero === "none" ? nome : `${nome} ${numero}`;
+        setFormData((prev) => ({
+            ...prev,
+            dados: {
+                ...prev.dados,
+                rankJogador: rankCompleto,
+            },
+        }));
+    };
+
+    // Função para obter ID do mapa pelo nome
+    const getMapaIdByName = (nome: string | null): number | null => {
+        if (!nome) return null;
+        const mapa = mapas.find((m) => m.nome === nome);
+        return mapa ? mapa.idMapa : null;
+    };
+
+    // Função para obter nome do mapa pelo ID
+    const getMapaNameById = (id: number | null): string => {
+        if (!id) return "none";
+        const mapa = mapas.find((m) => m.idMapa === id);
+        return mapa ? mapa.nome : "none";
+    };
+
+    // Handler para mudança de mapa
+    const handleMapaChange = (
+        field: "mapaFavoritoId" | "mapaMaisVitoriasId" | "mapaMaisDerrotasId",
+        nome: string
+    ) => {
+        const id = nome === "none" ? null : getMapaIdByName(nome);
+        setFormData((prev) => ({
+            ...prev,
+            dados: {
+                ...prev.dados,
+                [field]: id,
+            },
+        }));
+    };
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -65,10 +147,10 @@ export function CreatePlayerButton() {
                 "mapaMaisVitoriasId",
                 "mapaMaisDerrotasId",
             ].includes(name);
-            setFormData({
-                ...formData,
+            setFormData((prev) => ({
+                ...prev,
                 dados: {
-                    ...formData.dados,
+                    ...prev.dados,
                     [name]: isNumeric
                         ? value
                             ? Number(value)
@@ -77,65 +159,93 @@ export function CreatePlayerButton() {
                             : 0
                         : value,
                 },
-            });
+            }));
         } else {
-            setFormData({
-                ...formData,
+            setFormData((prev) => ({
+                ...prev,
                 [name]: value,
-            });
+            }));
         }
     };
 
     const adicionarOperadorAtaque = () => {
         if (
-            novoOperadorAtaque.operadorId <= 0 ||
+            !novoOperadorAtaque.operadorNome ||
             novoOperadorAtaque.winrate <= 0
         ) {
+            console.log(
+                "Validação falhou - não adicionando operador de ataque"
+            );
             return;
         }
-        setFormData({
-            ...formData,
-            operadoresAtaque: [
-                ...formData.operadoresAtaque,
-                { ...novoOperadorAtaque },
-            ],
+        const novoOperador = {
+            nomeOperador: novoOperadorAtaque.operadorNome,
+            winrate: novoOperadorAtaque.winrate,
+        };
+        console.log("Adicionando operador de ataque:", novoOperador);
+        console.log(
+            "Estado atual de operadoresAtaque:",
+            formData.operadoresAtaque
+        );
+
+        setFormData((prev) => {
+            const novoArray = [...prev.operadoresAtaque, novoOperador];
+            console.log("Novo array de operadoresAtaque:", novoArray);
+            return {
+                ...prev,
+                operadoresAtaque: novoArray,
+            };
         });
-        setNovoOperadorAtaque({ operadorId: 0, winrate: 0 });
+        setNovoOperadorAtaque({ operadorId: 0, operadorNome: "", winrate: 0 });
     };
 
     const adicionarOperadorDefesa = () => {
         if (
-            novoOperadorDefesa.operadorId <= 0 ||
+            !novoOperadorDefesa.operadorNome ||
             novoOperadorDefesa.winrate <= 0
         ) {
+            console.log(
+                "Validação falhou - não adicionando operador de defesa"
+            );
             return;
         }
-        setFormData({
-            ...formData,
-            operadoresDefesa: [
-                ...formData.operadoresDefesa,
-                { ...novoOperadorDefesa },
-            ],
+        const novoOperador = {
+            nomeOperador: novoOperadorDefesa.operadorNome,
+            winrate: novoOperadorDefesa.winrate,
+        };
+        console.log("Adicionando operador de defesa:", novoOperador);
+        console.log(
+            "Estado atual de operadoresDefesa:",
+            formData.operadoresDefesa
+        );
+
+        setFormData((prev) => {
+            const novoArray = [...prev.operadoresDefesa, novoOperador];
+            console.log("Novo array de operadoresDefesa:", novoArray);
+            return {
+                ...prev,
+                operadoresDefesa: novoArray,
+            };
         });
-        setNovoOperadorDefesa({ operadorId: 0, winrate: 0 });
+        setNovoOperadorDefesa({ operadorId: 0, operadorNome: "", winrate: 0 });
     };
 
     const removerOperadorAtaque = (index: number) => {
-        setFormData({
-            ...formData,
-            operadoresAtaque: formData.operadoresAtaque.filter(
+        setFormData((prev) => ({
+            ...prev,
+            operadoresAtaque: prev.operadoresAtaque.filter(
                 (_, i) => i !== index
             ),
-        });
+        }));
     };
 
     const removerOperadorDefesa = (index: number) => {
-        setFormData({
-            ...formData,
-            operadoresDefesa: formData.operadoresDefesa.filter(
+        setFormData((prev) => ({
+            ...prev,
+            operadoresDefesa: prev.operadoresDefesa.filter(
                 (_, i) => i !== index
             ),
-        });
+        }));
     };
 
     const resetForm = () => {
@@ -149,8 +259,8 @@ export function CreatePlayerButton() {
                 kd: 1.0,
                 plataforma: "PC",
                 horasJogadas: 0,
-                mainRole: "Suporte",
-                preferenciaJogo: "Casual",
+                mainRole: "Support",
+                preferenciaJogo: "Solo",
                 mapaFavoritoId: null,
                 mapaMaisVitoriasId: null,
                 mapaMaisDerrotasId: null,
@@ -158,8 +268,10 @@ export function CreatePlayerButton() {
             operadoresAtaque: [],
             operadoresDefesa: [],
         });
-        setNovoOperadorAtaque({ operadorId: 0, winrate: 0 });
-        setNovoOperadorDefesa({ operadorId: 0, winrate: 0 });
+        setNovoOperadorAtaque({ operadorId: 0, operadorNome: "", winrate: 0 });
+        setNovoOperadorDefesa({ operadorId: 0, operadorNome: "", winrate: 0 });
+        setRankNome("Bronze");
+        setRankNumero("I");
         setError("");
     };
 
@@ -168,8 +280,82 @@ export function CreatePlayerButton() {
         try {
             setLoading(true);
             setError("");
-            await jogadorService.create(formData);
-            alert("Jogador criado com sucesso!");
+
+            // Debug: verificar estado do formData antes de processar
+            console.log("=== DEBUG: Estado do formData ===");
+            console.log("formData completo:", formData);
+            console.log(
+                "operadoresAtaque no formData:",
+                formData.operadoresAtaque
+            );
+            console.log(
+                "operadoresDefesa no formData:",
+                formData.operadoresDefesa
+            );
+            console.log(
+                "Tipo de operadoresAtaque:",
+                typeof formData.operadoresAtaque
+            );
+            console.log("É array?", Array.isArray(formData.operadoresAtaque));
+            console.log(
+                "Tamanho do array ataque:",
+                formData.operadoresAtaque?.length
+            );
+            console.log(
+                "Tamanho do array defesa:",
+                formData.operadoresDefesa?.length
+            );
+
+            // Preparar dados para envio - garantir formato correto
+            const operadoresAtaqueEnvio = Array.isArray(
+                formData.operadoresAtaque
+            )
+                ? formData.operadoresAtaque.map((op) => ({
+                      nomeOperador: op.nomeOperador,
+                      winrate: op.winrate,
+                  }))
+                : [];
+
+            const operadoresDefesaEnvio = Array.isArray(
+                formData.operadoresDefesa
+            )
+                ? formData.operadoresDefesa.map((op) => ({
+                      nomeOperador: op.nomeOperador,
+                      winrate: op.winrate,
+                  }))
+                : [];
+
+            console.log("operadoresAtaqueEnvio:", operadoresAtaqueEnvio);
+            console.log("operadoresDefesaEnvio:", operadoresDefesaEnvio);
+
+            const dadosParaEnvio = {
+                nickname: formData.nickname,
+                dados: {
+                    nivel: formData.dados.nivel,
+                    winrate: formData.dados.winrate,
+                    rankJogador: formData.dados.rankJogador,
+                    headshot: formData.dados.headshot,
+                    kd: formData.dados.kd,
+                    plataforma: formData.dados.plataforma,
+                    horasJogadas: formData.dados.horasJogadas,
+                    mainRole: formData.dados.mainRole,
+                    preferenciaJogo: formData.dados.preferenciaJogo,
+                    mapaFavoritoId: formData.dados.mapaFavoritoId ?? 0,
+                    mapaMaisVitoriasId: formData.dados.mapaMaisVitoriasId ?? 0,
+                    mapaMaisDerrotasId: formData.dados.mapaMaisDerrotasId ?? 0,
+                },
+                operadoresAtaque: operadoresAtaqueEnvio,
+                operadoresDefesa: operadoresDefesaEnvio,
+            };
+
+            // Debug: mostrar JSON no console
+            console.log("=== JSON sendo enviado para criar jogador ===");
+            console.log(JSON.stringify(dadosParaEnvio, null, 2));
+
+            await jogadorService.create(dadosParaEnvio);
+            toast.success("Jogador criado com sucesso!", {
+                position: "bottom-center",
+            });
             resetForm();
             setDialogOpen(false);
             // Recarrega a página para atualizar os dados
@@ -178,6 +364,9 @@ export function CreatePlayerButton() {
             console.error("Erro ao criar jogador:", error);
             const errorMessage =
                 error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao criar jogador: ${errorMessage}`, {
+                position: "bottom-center",
+            });
             setError(`Erro ao criar jogador: ${errorMessage}`);
         } finally {
             setLoading(false);
@@ -280,25 +469,92 @@ export function CreatePlayerButton() {
                                                 required
                                             />
                                         </div>
-                                        <div>
-                                            <Label htmlFor="rankJogador">
-                                                Rank
-                                            </Label>
-                                            <Input
-                                                id="rankJogador"
-                                                name="rankJogador"
-                                                placeholder="Ex: Emerald IV"
-                                                value={
-                                                    formData.dados.rankJogador
-                                                }
-                                                onChange={(e) =>
-                                                    handleInputChange(
-                                                        e,
-                                                        "dados"
-                                                    )
-                                                }
-                                                required
-                                            />
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <Label htmlFor="rankNome">
+                                                    Rank (Nome)
+                                                </Label>
+                                                <Select
+                                                    value={rankNome}
+                                                    onValueChange={(nome) =>
+                                                        handleRankChange(
+                                                            nome,
+                                                            rankNumero
+                                                        )
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Selecione o rank" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="max-h-[200px]">
+                                                        <SelectItem value="Cobre">
+                                                            Cobre
+                                                        </SelectItem>
+                                                        <SelectItem value="Bronze">
+                                                            Bronze
+                                                        </SelectItem>
+                                                        <SelectItem value="Prata">
+                                                            Prata
+                                                        </SelectItem>
+                                                        <SelectItem value="Ouro">
+                                                            Ouro
+                                                        </SelectItem>
+                                                        <SelectItem value="Platina">
+                                                            Platina
+                                                        </SelectItem>
+                                                        <SelectItem value="Esmeralda">
+                                                            Esmeralda
+                                                        </SelectItem>
+                                                        <SelectItem value="Diamante">
+                                                            Diamante
+                                                        </SelectItem>
+                                                        <SelectItem value="Campeão">
+                                                            Campeão
+                                                        </SelectItem>
+                                                        <SelectItem value="Desconhecido">
+                                                            Desconhecido
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="rankNumero">
+                                                    Rank (Número)
+                                                </Label>
+                                                <Select
+                                                    value={rankNumero}
+                                                    onValueChange={(numero) =>
+                                                        handleRankChange(
+                                                            rankNome,
+                                                            numero
+                                                        )
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Selecione o número" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="max-h-[200px]">
+                                                        <SelectItem value="none">
+                                                            Sem número
+                                                        </SelectItem>
+                                                        <SelectItem value="I">
+                                                            I
+                                                        </SelectItem>
+                                                        <SelectItem value="II">
+                                                            II
+                                                        </SelectItem>
+                                                        <SelectItem value="III">
+                                                            III
+                                                        </SelectItem>
+                                                        <SelectItem value="IV">
+                                                            IV
+                                                        </SelectItem>
+                                                        <SelectItem value="V">
+                                                            V
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                         </div>
                                         <div>
                                             <Label htmlFor="headshot">
@@ -383,105 +639,186 @@ export function CreatePlayerButton() {
                                             <Label htmlFor="mainRole">
                                                 Função Principal
                                             </Label>
-                                            <Input
-                                                id="mainRole"
-                                                name="mainRole"
-                                                placeholder="Suporte, Fragger, etc."
+                                            <Select
                                                 value={formData.dados.mainRole}
-                                                onChange={(e) =>
-                                                    handleInputChange(
-                                                        e,
-                                                        "dados"
-                                                    )
+                                                onValueChange={(value) =>
+                                                    setFormData((prev) => ({
+                                                        ...prev,
+                                                        dados: {
+                                                            ...prev.dados,
+                                                            mainRole: value,
+                                                        },
+                                                    }))
                                                 }
-                                                required
-                                            />
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione a função" />
+                                                </SelectTrigger>
+                                                <SelectContent className="max-h-[200px]">
+                                                    <SelectItem value="Entry Fragger">
+                                                        Entry Fragger
+                                                    </SelectItem>
+                                                    <SelectItem value="Support">
+                                                        Support
+                                                    </SelectItem>
+                                                    <SelectItem value="Hard Breacher">
+                                                        Hard Breacher
+                                                    </SelectItem>
+                                                    <SelectItem value="Soft Breacher">
+                                                        Soft Breacher
+                                                    </SelectItem>
+                                                    <SelectItem value="Flank Watch">
+                                                        Flank Watch
+                                                    </SelectItem>
+                                                    <SelectItem value="Anchor">
+                                                        Anchor
+                                                    </SelectItem>
+                                                    <SelectItem value="Roamer">
+                                                        Roamer
+                                                    </SelectItem>
+                                                    <SelectItem value="Anti-Hard Breach">
+                                                        Anti-Hard Breach
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                         <div>
                                             <Label htmlFor="preferenciaJogo">
                                                 Preferência de Jogo
                                             </Label>
-                                            <Input
-                                                id="preferenciaJogo"
-                                                name="preferenciaJogo"
-                                                placeholder="Ranked, Casual, etc."
+                                            <Select
                                                 value={
                                                     formData.dados
                                                         .preferenciaJogo
                                                 }
-                                                onChange={(e) =>
-                                                    handleInputChange(
-                                                        e,
-                                                        "dados"
-                                                    )
+                                                onValueChange={(value) =>
+                                                    setFormData((prev) => ({
+                                                        ...prev,
+                                                        dados: {
+                                                            ...prev.dados,
+                                                            preferenciaJogo:
+                                                                value,
+                                                        },
+                                                    }))
                                                 }
-                                                required
-                                            />
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione a preferência" />
+                                                </SelectTrigger>
+                                                <SelectContent className="max-h-[200px]">
+                                                    <SelectItem value="Solo">
+                                                        Solo
+                                                    </SelectItem>
+                                                    <SelectItem value="Duo">
+                                                        Duo
+                                                    </SelectItem>
+                                                    <SelectItem value="Squad">
+                                                        Squad
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                         <div>
                                             <Label htmlFor="mapaFavoritoId">
-                                                ID Mapa Favorito (Opcional)
+                                                Mapa Favorito (Opcional)
                                             </Label>
-                                            <Input
-                                                id="mapaFavoritoId"
-                                                name="mapaFavoritoId"
-                                                type="number"
-                                                placeholder="ID do mapa"
-                                                value={
+                                            <Select
+                                                value={getMapaNameById(
                                                     formData.dados
-                                                        .mapaFavoritoId || ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleInputChange(
-                                                        e,
-                                                        "dados"
+                                                        .mapaFavoritoId
+                                                )}
+                                                onValueChange={(nome) =>
+                                                    handleMapaChange(
+                                                        "mapaFavoritoId",
+                                                        nome
                                                     )
                                                 }
-                                            />
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione um mapa" />
+                                                </SelectTrigger>
+                                                <SelectContent className="max-h-[200px]">
+                                                    <SelectItem value="none">
+                                                        Nenhum
+                                                    </SelectItem>
+                                                    {mapas.map((mapa) => (
+                                                        <SelectItem
+                                                            key={mapa.idMapa}
+                                                            value={mapa.nome}
+                                                        >
+                                                            {mapa.nome}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                         <div>
                                             <Label htmlFor="mapaMaisVitoriasId">
-                                                ID Mapa Mais Vitórias (Opcional)
+                                                Mapa Mais Vitórias (Opcional)
                                             </Label>
-                                            <Input
-                                                id="mapaMaisVitoriasId"
-                                                name="mapaMaisVitoriasId"
-                                                type="number"
-                                                placeholder="ID do mapa"
-                                                value={
+                                            <Select
+                                                value={getMapaNameById(
                                                     formData.dados
-                                                        .mapaMaisVitoriasId ||
-                                                    ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleInputChange(
-                                                        e,
-                                                        "dados"
+                                                        .mapaMaisVitoriasId
+                                                )}
+                                                onValueChange={(nome) =>
+                                                    handleMapaChange(
+                                                        "mapaMaisVitoriasId",
+                                                        nome
                                                     )
                                                 }
-                                            />
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione um mapa" />
+                                                </SelectTrigger>
+                                                <SelectContent className="max-h-[200px]">
+                                                    <SelectItem value="none">
+                                                        Nenhum
+                                                    </SelectItem>
+                                                    {mapas.map((mapa) => (
+                                                        <SelectItem
+                                                            key={mapa.idMapa}
+                                                            value={mapa.nome}
+                                                        >
+                                                            {mapa.nome}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                         <div>
                                             <Label htmlFor="mapaMaisDerrotasId">
-                                                ID Mapa Mais Derrotas (Opcional)
+                                                Mapa Mais Derrotas (Opcional)
                                             </Label>
-                                            <Input
-                                                id="mapaMaisDerrotasId"
-                                                name="mapaMaisDerrotasId"
-                                                type="number"
-                                                placeholder="ID do mapa"
-                                                value={
+                                            <Select
+                                                value={getMapaNameById(
                                                     formData.dados
-                                                        .mapaMaisDerrotasId ||
-                                                    ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleInputChange(
-                                                        e,
-                                                        "dados"
+                                                        .mapaMaisDerrotasId
+                                                )}
+                                                onValueChange={(nome) =>
+                                                    handleMapaChange(
+                                                        "mapaMaisDerrotasId",
+                                                        nome
                                                     )
                                                 }
-                                            />
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione um mapa" />
+                                                </SelectTrigger>
+                                                <SelectContent className="max-h-[200px]">
+                                                    <SelectItem value="none">
+                                                        Nenhum
+                                                    </SelectItem>
+                                                    {mapas.map((mapa) => (
+                                                        <SelectItem
+                                                            key={mapa.idMapa}
+                                                            value={mapa.nome}
+                                                        >
+                                                            {mapa.nome}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                     </div>
                                 </fieldset>
@@ -500,8 +837,7 @@ export function CreatePlayerButton() {
                                             >
                                                 <div className="flex-1">
                                                     <span>
-                                                        Operador ID:{" "}
-                                                        {op.operadorId} -
+                                                        {op.nomeOperador} -
                                                         Winrate: {op.winrate}%
                                                     </span>
                                                 </div>
@@ -522,27 +858,36 @@ export function CreatePlayerButton() {
                                     )}
 
                                     <div className="flex gap-2">
-                                        <Input
-                                            type="number"
-                                            placeholder="ID do Operador"
+                                        <Select
                                             value={
-                                                novoOperadorAtaque.operadorId ||
-                                                ""
+                                                novoOperadorAtaque.operadorNome
                                             }
-                                            onChange={(e) =>
+                                            onValueChange={(nome) =>
                                                 setNovoOperadorAtaque({
                                                     ...novoOperadorAtaque,
-                                                    operadorId:
-                                                        parseInt(
-                                                            e.target.value
-                                                        ) || 0,
+                                                    operadorNome: nome,
                                                 })
                                             }
-                                        />
+                                        >
+                                            <SelectTrigger className="flex-1">
+                                                <SelectValue placeholder="Selecione um operador" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-[200px]">
+                                                {operadoresAtaque.map((op) => (
+                                                    <SelectItem
+                                                        key={op.idOperador}
+                                                        value={op.nome}
+                                                    >
+                                                        {op.nome}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <Input
                                             type="number"
                                             step="0.01"
                                             placeholder="Winrate"
+                                            className="w-32"
                                             value={
                                                 novoOperadorAtaque.winrate || ""
                                             }
@@ -560,7 +905,7 @@ export function CreatePlayerButton() {
                                             type="button"
                                             onClick={adicionarOperadorAtaque}
                                             disabled={
-                                                !novoOperadorAtaque.operadorId ||
+                                                !novoOperadorAtaque.operadorNome ||
                                                 !novoOperadorAtaque.winrate
                                             }
                                         >
@@ -583,8 +928,7 @@ export function CreatePlayerButton() {
                                             >
                                                 <div className="flex-1">
                                                     <span>
-                                                        Operador ID:{" "}
-                                                        {op.operadorId} -
+                                                        {op.nomeOperador} -
                                                         Winrate: {op.winrate}%
                                                     </span>
                                                 </div>
@@ -605,27 +949,36 @@ export function CreatePlayerButton() {
                                     )}
 
                                     <div className="flex gap-2">
-                                        <Input
-                                            type="number"
-                                            placeholder="ID do Operador"
+                                        <Select
                                             value={
-                                                novoOperadorDefesa.operadorId ||
-                                                ""
+                                                novoOperadorDefesa.operadorNome
                                             }
-                                            onChange={(e) =>
+                                            onValueChange={(nome) =>
                                                 setNovoOperadorDefesa({
                                                     ...novoOperadorDefesa,
-                                                    operadorId:
-                                                        parseInt(
-                                                            e.target.value
-                                                        ) || 0,
+                                                    operadorNome: nome,
                                                 })
                                             }
-                                        />
+                                        >
+                                            <SelectTrigger className="flex-1">
+                                                <SelectValue placeholder="Selecione um operador" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-[200px]">
+                                                {operadoresDefesa.map((op) => (
+                                                    <SelectItem
+                                                        key={op.idOperador}
+                                                        value={op.nome}
+                                                    >
+                                                        {op.nome}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <Input
                                             type="number"
                                             step="0.01"
                                             placeholder="Winrate"
+                                            className="w-32"
                                             value={
                                                 novoOperadorDefesa.winrate || ""
                                             }
@@ -643,7 +996,7 @@ export function CreatePlayerButton() {
                                             type="button"
                                             onClick={adicionarOperadorDefesa}
                                             disabled={
-                                                !novoOperadorDefesa.operadorId ||
+                                                !novoOperadorDefesa.operadorNome ||
                                                 !novoOperadorDefesa.winrate
                                             }
                                         >

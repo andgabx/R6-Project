@@ -54,26 +54,22 @@ export const WlKdChart = ({ players }: WlKdChartProps) => {
     );
 
     return (
-        <ChartContainer
-            config={chartConfig}
-            // Gráficos de dispersão geralmente precisam de mais altura
-            className="w-full h-[400px]"
-        >
-            <Card className="flex flex-col h-full">
-                <CardHeader className="items-center pb-0">
+        <ChartContainer config={chartConfig} className="w-full h-full">
+            <Card className="h-full flex flex-col">
+                <CardHeader className="flex-shrink-0">
                     <CardTitle>W/L % x K/D</CardTitle>
                     <CardDescription>
                         Relação entre Taxa de Vitórias e K/D de cada jogador
                     </CardDescription>
                 </CardHeader>
 
-                <CardContent className="flex-1">
+                <CardContent className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <ScatterChart
                             data={chartData}
                             margin={{
                                 top: 20,
-                                right: 30, // Dê espaço para os labels do eixo Y
+                                right: 30,
                                 bottom: 20,
                                 left: 10,
                             }}
@@ -84,24 +80,21 @@ export const WlKdChart = ({ players }: WlKdChartProps) => {
                                 type="number"
                                 dataKey="kd"
                                 name="K/D"
-                                // Formata o label do eixo X
                                 tickFormatter={(value) => value.toFixed(1)}
                             />
                             <YAxis
                                 type="number"
                                 dataKey="wl"
                                 name="W/L %"
-                                unit="" // Adiciona o sufixo '%'
-                                // Limita o domínio do eixo Y de 0 a 100+
+                                unit=""
                                 domain={[0, "dataMax + 5"]}
-                                tickFormatter={(value) => `${value}0%`}
+                                tickFormatter={(value) => `${value}%`}
                             />
 
                             <ChartTooltip
                                 cursor={false}
                                 content={
                                     <ChartTooltipContent
-                                        // Mostra o nome do jogador no título do tooltip
                                         labelFormatter={(label, payload) => {
                                             return (
                                                 payload?.[0]?.payload?.nome ||
@@ -113,16 +106,16 @@ export const WlKdChart = ({ players }: WlKdChartProps) => {
                             />
 
                             <Scatter
-                                name="W/L %" // Conecta ao chartConfig 'wl'
-                                dataKey="wl" // Necessário para o tooltip funcionar bem
-                                fill="var(--color-wl)" // Cor vinda do chartConfig
-                                shape="square" // Forma de quadrado, como na referência
+                                name="W/L %"
+                                dataKey="wl"
+                                fill="var(--color-wl)"
+                                shape="square"
                             />
                         </ScatterChart>
                     </ResponsiveContainer>
                 </CardContent>
 
-                <CardFooter className="flex justify-center items-center p-4 text-sm">
+                <CardFooter className="flex justify-center items-center p-4 text-sm flex-shrink-0">
                     <ChartLegendContent
                         payload={[
                             {

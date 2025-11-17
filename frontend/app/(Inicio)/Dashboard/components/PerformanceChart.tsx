@@ -1,95 +1,123 @@
 "use client";
 
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-} from "@/components/ui/chart";
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    ResponsiveContainer,
-} from "recharts";
 import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Jogador } from "@/types/jogador";
+import { RankChart } from "./RankChart";
+import { WlKdChart } from "./WinKdChart";
+import { FavoriteMapChart } from "./FavoriteMapChart";
+import { KdHorasChart } from "./KdHorasChart";
+import { PlatformChart } from "./PlatformChart";
 
 interface PerformanceChartProps {
-    data: Array<{
-        month: string;
-        value: number;
-    }>;
+    players?: Jogador[];
 }
 
-export const PerformanceChart = ({ data }: PerformanceChartProps) => {
-    const [activeTab, setActiveTab] = useState("workflows");
+type ChartType = {
+    id: string;
+    name: string;
+    requiresPlayers: boolean;
+};
 
-    const chartConfig = {
-        value: {
-            label: "Valor",
-            color: "var(--chart-1)",
+export const PerformanceChart = ({ players = [] }: PerformanceChartProps) => {
+    const charts: ChartType[] = [
+        {
+            id: "rank",
+            name: "Jogadores por Rank",
+            requiresPlayers: false,
         },
+        {
+            id: "platform",
+            name: "Jogadores por Plataforma",
+            requiresPlayers: true,
+        },
+        {
+            id: "favoriteMap",
+            name: "Mapas Favoritos",
+            requiresPlayers: true,
+        },
+        {
+            id: "kdHoras",
+            name: "K/D vs. Horas Jogadas",
+            requiresPlayers: true,
+        },
+        {
+            id: "wlKd",
+            name: "W/L % x K/D",
+            requiresPlayers: true,
+        },
+    ];
+
+    const [currentChartIndex, setCurrentChartIndex] = useState(0);
+
+    const currentChart = charts[currentChartIndex];
+
+    const renderChart = () => {
+        switch (currentChart.id) {
+            case "rank":
+                return <RankChart />;
+            case "platform":
+                return <PlatformChart players={players} />;
+            case "favoriteMap":
+                return <FavoriteMapChart players={players} />;
+            case "kdHoras":
+                return <KdHorasChart players={players} />;
+            case "wlKd":
+                return <WlKdChart players={players} />;
+            default:
+                return null;
+        }
     };
 
+    const nextChart = () => {
+        setCurrentChartIndex((prev) => (prev + 1) % charts.length);
+    };
+
+    const prevChart = () => {
+        setCurrentChartIndex(
+            (prev) => (prev - 1 + charts.length) % charts.length
+        );
+    };
+
+    // Se o chart atual requer players e não temos players, mostrar mensagem
+    if (currentChart.requiresPlayers && players.length === 0) {
+        return (
+            <div className="h-full flex items-center justify-center border rounded-lg p-8">
+                <p className="text-muted-foreground">
+                    Carregando dados dos jogadores...
+                </p>
+            </div>
+        );
+    }
+
     return (
-        <Card className="h-full flex flex-col">
-            <CardHeader className="flex-shrink-0">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle>Performance Analytics</CardTitle>
-                        <CardDescription>
-                            Tendências de execução e métricas do sistema
-                        </CardDescription>
-                    </div>
-                    <Tabs value={activeTab} onValueChange={setActiveTab}>
-                        <TabsList>
-                            <TabsTrigger value="workflows">
-                                Workflows
-                            </TabsTrigger>
-                            <TabsTrigger value="sales">Vendas</TabsTrigger>
-                            <TabsTrigger value="views">
-                                Visualizações
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-                </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col min-h-0">
-                <ChartContainer
-                    config={chartConfig}
-                    className="flex-1 min-h-[300px]"
+        <div className="h-full flex flex-col relative">
+            {/* Navegação com setas */}
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={prevChart}
+                    className="h-8 w-8"
                 >
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={data}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis
-                                dataKey="month"
-                                tick={{ fill: "hsl(var(--muted-foreground))" }}
-                            />
-                            <YAxis
-                                tick={{ fill: "hsl(var(--muted-foreground))" }}
-                            />
-                            <ChartTooltip content={<ChartTooltipContent />} />
-                            <Line
-                                type="monotone"
-                                dataKey="value"
-                                stroke="var(--chart-1)"
-                                strokeWidth={2}
-                                dot={false}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </ChartContainer>
-            </CardContent>
-        </Card>
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground min-w-[150px] text-center">
+                    {currentChart.name}
+                </span>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={nextChart}
+                    className="h-8 w-8"
+                >
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
+            </div>
+
+            {/* Chart atual */}
+            <div className="flex-1 min-h-0">{renderChart()}</div>
+        </div>
     );
 };

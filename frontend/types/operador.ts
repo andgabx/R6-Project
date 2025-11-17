@@ -18,3 +18,13 @@ export interface Operador {
     armas: Arma[];
     habilidades: Habilidades;
 }
+
+export interface MetaAtaque {
+    nome: string;
+    velocidade: number;
+    blindagem: number;
+    unidadeEspecial: string;
+    gadgetUnicoAtaque: string | null;
+    totalJogadoresQueUsam: number;
+    winrateMedioEntreEles: number | null;
+}
