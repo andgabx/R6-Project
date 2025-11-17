@@ -51,6 +51,7 @@ interface ListAllProps {
 export default function ListAll({
     jogadores,
     setJogadores,
+    loading,
     setLoading,
     setError,
 }: ListAllProps) {
@@ -397,52 +398,112 @@ export default function ListAll({
         setIsDeleteModalOpen(true);
     };
 
-    const handleEdit = (jogador: Jogador) => {
-        setSelectedJogador(jogador);
-        setIsEditModalOpen(true);
+    const handleEdit = async (jogador: Jogador) => {
+        try {
+            setLoading(true);
+            // Buscar os dados completos do jogador antes de abrir o modal de edição
+            const jogadorCompleto = await jogadorService.findById(jogador.idJogador);
+            
+            console.log("=== DEBUG: Jogador selecionado para edição ===");
+            console.log("Jogador da lista (incompleto):", jogador);
+            console.log("Jogador completo da API:", jogadorCompleto);
+            console.log("Dados completos:", jogadorCompleto.dados);
+            console.log("Operadores Ataque:", jogadorCompleto.operadoresAtaque);
+            console.log("Operadores Defesa:", jogadorCompleto.operadoresDefesa);
+            
+            // Fazer uma cópia profunda do jogador completo
+            const jogadorCopy: Jogador = {
+                ...jogadorCompleto,
+                dados: jogadorCompleto.dados
+                    ? {
+                          ...jogadorCompleto.dados,
+                          mapaFavorito: jogadorCompleto.dados.mapaFavorito
+                              ? { ...jogadorCompleto.dados.mapaFavorito }
+                              : null,
+                          mapaMaisVitorias: jogadorCompleto.dados.mapaMaisVitorias
+                              ? { ...jogadorCompleto.dados.mapaMaisVitorias }
+                              : null,
+                          mapaMaisDerrotas: jogadorCompleto.dados.mapaMaisDerrotas
+                              ? { ...jogadorCompleto.dados.mapaMaisDerrotas }
+                              : null,
+                      }
+                    : null,
+                operadoresAtaque: jogadorCompleto.operadoresAtaque
+                    ? jogadorCompleto.operadoresAtaque.map((op) => ({ ...op }))
+                    : [],
+                operadoresDefesa: jogadorCompleto.operadoresDefesa
+                    ? jogadorCompleto.operadoresDefesa.map((op) => ({ ...op }))
+                    : [],
+            };
+            
+            console.log("Jogador copiado para edição:", jogadorCopy);
+            
+            setSelectedJogador(jogadorCopy);
+            setIsEditModalOpen(true);
+        } catch (error) {
+            console.error("Erro ao buscar dados completos do jogador:", error);
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(
+                `Erro ao carregar dados do jogador: ${errorMessage}`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleUpdateSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedJogador) return;
+        if (!selectedJogador || !selectedJogador.dados) return;
         
         try {
             setLoading(true);
             setError("");
             
+            // Usar os valores reais do jogador, não valores padrão
             const updateData: JogadorRequest = {
                 nickname: selectedJogador.nickname,
                 dados: {
-                    nivel: selectedJogador.dados?.nivel || 1,
-                    winrate: selectedJogador.dados?.winrate || 50.0,
-                    rankJogador: selectedJogador.dados?.rankJogador || "Bronze",
-                    headshot: selectedJogador.dados?.headshot || 0.0,
-                    kd: selectedJogador.dados?.kd || 1.0,
-                    plataforma: selectedJogador.dados?.plataforma || "PC",
-                    horasJogadas: selectedJogador.dados?.horasJogadas || 0,
-                    mainRole: selectedJogador.dados?.mainRole || "Support",
-                    preferenciaJogo:
-                        selectedJogador.dados?.preferenciaJogo || "Competitivo",
-                    mapaFavoritoId:
-                        selectedJogador.dados?.mapaFavorito?.idMapa ?? 0,
-                    mapaMaisVitoriasId:
-                        selectedJogador.dados?.mapaMaisVitorias?.idMapa ?? 0,
-                    mapaMaisDerrotasId:
-                        selectedJogador.dados?.mapaMaisDerrotas?.idMapa ?? 0,
+                    nivel: selectedJogador.dados.nivel ?? 1,
+                    winrate: selectedJogador.dados.winrate ?? 50.0,
+                    rankJogador: selectedJogador.dados.rankJogador ?? "Bronze",
+                    headshot: selectedJogador.dados.headshot ?? 0.0,
+                    kd: selectedJogador.dados.kd ?? 1.0,
+                    plataforma: selectedJogador.dados.plataforma ?? "PC",
+                    horasJogadas: selectedJogador.dados.horasJogadas ?? 0,
+                    mainRole: selectedJogador.dados.mainRole ?? "Support",
+                    preferenciaJogo: selectedJogador.dados.preferenciaJogo ?? "Competitivo",
+                    mapaFavoritoId: selectedJogador.dados.mapaFavorito?.idMapa ?? null,
+                    mapaMaisVitoriasId: selectedJogador.dados.mapaMaisVitorias?.idMapa ?? null,
+                    mapaMaisDerrotasId: selectedJogador.dados.mapaMaisDerrotas?.idMapa ?? null,
                 },
-                operadoresAtaque: selectedJogador.operadoresAtaque.map(
+                operadoresAtaque: (selectedJogador.operadoresAtaque || []).map(
                     (op) => ({
-                        nomeOperador: op.nomeOperador || "",
-                        winrate: op.winrate || 0,
+                        nomeOperador: op.nomeOperador ?? "",
+                        winrate: op.winrate ?? 0,
                     })
                 ),
-                operadoresDefesa: selectedJogador.operadoresDefesa.map(
+                operadoresDefesa: (selectedJogador.operadoresDefesa || []).map(
                     (op) => ({
-                        nomeOperador: op.nomeOperador || "",
-                        winrate: op.winrate || 0,
+                        nomeOperador: op.nomeOperador ?? "",
+                        winrate: op.winrate ?? 0,
                     })
                 ),
             };
+            
+            // Converter null para 0 apenas para mapas (conforme esperado pela API)
+            if (updateData.dados.mapaFavoritoId === null) {
+                updateData.dados.mapaFavoritoId = 0;
+            }
+            if (updateData.dados.mapaMaisVitoriasId === null) {
+                updateData.dados.mapaMaisVitoriasId = 0;
+            }
+            if (updateData.dados.mapaMaisDerrotasId === null) {
+                updateData.dados.mapaMaisDerrotasId = 0;
+            }
 
             await jogadorService.update(selectedJogador.idJogador, updateData);
             setIsEditModalOpen(false);
@@ -568,7 +629,7 @@ export default function ListAll({
                                 id="nivel"
                                 name="nivel"
                                 type="number"
-                                value={selectedJogador.dados?.nivel || 0}
+                                value={selectedJogador.dados?.nivel ?? 0}
                                 onChange={(e) =>
                                     handleEditInputChange(e, "dados")
                                 }
@@ -582,7 +643,7 @@ export default function ListAll({
                                 name="winrate"
                                 type="number"
                                 step="0.01"
-                                value={selectedJogador.dados?.winrate || 0}
+                                value={selectedJogador.dados?.winrate ?? 0}
                                 onChange={(e) =>
                                     handleEditInputChange(e, "dados")
                                 }
@@ -643,7 +704,7 @@ export default function ListAll({
                                 name="headshot"
                                 type="number"
                                 step="0.01"
-                                value={selectedJogador.dados?.headshot || 0}
+                                value={selectedJogador.dados?.headshot ?? 0}
                                 onChange={(e) =>
                                     handleEditInputChange(e, "dados")
                                 }
@@ -657,7 +718,7 @@ export default function ListAll({
                                 name="kd"
                                 type="number"
                                 step="0.01"
-                                value={selectedJogador.dados?.kd || 0}
+                                value={selectedJogador.dados?.kd ?? 0}
                                 onChange={(e) =>
                                     handleEditInputChange(e, "dados")
                                 }
@@ -669,7 +730,7 @@ export default function ListAll({
                             <Input
                                 id="plataforma"
                                 name="plataforma"
-                                value={selectedJogador.dados?.plataforma || ""}
+                                value={selectedJogador.dados?.plataforma ?? ""}
                                 onChange={(e) =>
                                     handleEditInputChange(e, "dados")
                                 }
@@ -682,7 +743,7 @@ export default function ListAll({
                                 id="horasJogadas"
                                 name="horasJogadas"
                                 type="number"
-                                value={selectedJogador.dados?.horasJogadas || 0}
+                                value={selectedJogador.dados?.horasJogadas ?? 0}
                                 onChange={(e) =>
                                     handleEditInputChange(e, "dados")
                                 }
@@ -692,7 +753,7 @@ export default function ListAll({
                         <div>
                             <Label htmlFor="mainRole">Função Principal</Label>
                             <Select
-                                value={selectedJogador.dados?.mainRole || "Support"}
+                                value={selectedJogador.dados?.mainRole ?? "Support"}
                                 onValueChange={(value) => {
                                     if (selectedJogador) {
                                         setSelectedJogador({
@@ -742,7 +803,7 @@ export default function ListAll({
                             </Label>
                             <Select
                                 value={
-                                    selectedJogador.dados?.preferenciaJogo || "Competitivo"
+                                    selectedJogador.dados?.preferenciaJogo ?? "Competitivo"
                                 }
                                 onValueChange={(value) => {
                                     if (selectedJogador) {
@@ -1245,14 +1306,24 @@ export default function ListAll({
                 <DialogContent className="max-w-[95vw] w-full max-h-[95vh] h-full flex flex-col p-0 gap-0">
                     <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b">
                         <DialogTitle>
-                            Editar Jogador: {selectedJogador?.nickname}
+                            Editar Jogador: {selectedJogador?.nickname || "Carregando..."}
                         </DialogTitle>
                         <DialogDescription>
-                            Faça as alterações necessárias e clique em salvar.
+                            {loading
+                                ? "Carregando dados do jogador..."
+                                : "Faça as alterações necessárias e clique em salvar."}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex-1 overflow-y-auto px-6 py-4">
-                    {jogadorEditForm()}
+                        {loading ? (
+                            <div className="flex items-center justify-center py-8">
+                                <p className="text-muted-foreground">
+                                    Carregando dados do jogador...
+                                </p>
+                            </div>
+                        ) : (
+                            jogadorEditForm()
+                        )}
                     </div>
                     <div className="flex justify-end gap-2 px-6 py-4 border-t flex-shrink-0">
                         <Button
