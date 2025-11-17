@@ -8,6 +8,7 @@ import { RankChart } from "./RankChart";
 import { WlKdChart } from "./WinKdChart";
 import { FavoriteMapChart } from "./FavoriteMapChart";
 import { KdHorasChart } from "./KdHorasChart";
+import { KdHeadshotChart } from "./KdHeadshotChart";
 import { PlatformChart } from "./PlatformChart";
 
 interface PerformanceChartProps {
@@ -47,6 +48,11 @@ export const PerformanceChart = ({ players = [] }: PerformanceChartProps) => {
             name: "W/L % x K/D",
             requiresPlayers: true,
         },
+        {
+            id: "kdHeadshot",
+            name: "K/D vs. Headshot %",
+            requiresPlayers: true,
+        },
     ];
 
     const [currentChartIndex, setCurrentChartIndex] = useState(0);
@@ -65,6 +71,8 @@ export const PerformanceChart = ({ players = [] }: PerformanceChartProps) => {
                 return <KdHorasChart players={players} />;
             case "wlKd":
                 return <WlKdChart players={players} />;
+            case "kdHeadshot":
+                return <KdHeadshotChart players={players} />;
             default:
                 return null;
         }

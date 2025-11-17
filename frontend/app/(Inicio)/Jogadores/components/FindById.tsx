@@ -27,7 +27,17 @@ interface FindByIdProps {
     setIsNotFoundModalOpen: (isOpen: boolean) => void;
 }
 
-export default function FindById({ jogador, setJogador, loading, setLoading, error, setError, handleError, isNotFoundModalOpen, setIsNotFoundModalOpen }: FindByIdProps) {
+export default function FindById({
+    jogador,
+    setJogador,
+    loading,
+    setLoading,
+    error,
+    setError,
+    handleError,
+    isNotFoundModalOpen,
+    setIsNotFoundModalOpen,
+}: FindByIdProps) {
     const [searchId, setSearchId] = useState<number>(0);
 
     const buscarJogadorPorId = async () => {
@@ -47,7 +57,10 @@ export default function FindById({ jogador, setJogador, loading, setLoading, err
             }
         } catch (error) {
             setIsNotFoundModalOpen(true);
-            handleError(error, `Não foi possível encontrar o jogador com ID ${searchId}`);
+            handleError(
+                error,
+                `Não foi possível encontrar o jogador com ID ${searchId}`
+            );
         } finally {
             setLoading(false);
         }
@@ -55,17 +68,13 @@ export default function FindById({ jogador, setJogador, loading, setLoading, err
 
     return (
         <div>
-            <h2 className="text-2xl font-bold mb-4">
-                Buscar Jogador por ID
-            </h2>
+            <h2 className="text-2xl font-bold mb-4">Buscar Jogador por ID</h2>
             <div className="flex items-center gap-2 mb-6">
                 <Input
                     type="number"
                     placeholder="Digite o ID do jogador"
                     value={searchId || ""}
-                    onChange={(e) =>
-                        setSearchId(parseInt(e.target.value) || 0)
-                    }
+                    onChange={(e) => setSearchId(parseInt(e.target.value) || 0)}
                 />
                 <Button onClick={buscarJogadorPorId}>
                     <Search className="mr-2 h-4 w-4" /> Buscar
@@ -86,13 +95,33 @@ export default function FindById({ jogador, setJogador, loading, setLoading, err
                         {/* Detalhes do jogador encontrado */}
                         {jogador.dados && (
                             <div className="space-y-2">
-                                <p><strong>K/D:</strong> {jogador.dados.kd}</p>
-                                <p><strong>Winrate:</strong> {jogador.dados.winrate}%</p>
-                                <p><strong>Headshot:</strong> {jogador.dados.headshot}%</p>
-                                <p><strong>Plataforma:</strong> {jogador.dados.plataforma}</p>
-                                <p><strong>Horas jogadas:</strong> {jogador.dados.horasJogadas}</p>
-                                <p><strong>Função Principal:</strong> {jogador.dados.mainRole}</p>
-                                <p><strong>Preferência de jogo:</strong> {jogador.dados.preferenciaJogo}</p>
+                                <p>
+                                    <strong>K/D:</strong> {jogador.dados.kd}
+                                </p>
+                                <p>
+                                    <strong>Winrate:</strong>{" "}
+                                    {jogador.dados.winrate}%
+                                </p>
+                                <p>
+                                    <strong>Headshot:</strong>{" "}
+                                    {jogador.dados.headshot}%
+                                </p>
+                                <p>
+                                    <strong>Plataforma:</strong>{" "}
+                                    {jogador.dados.plataforma}
+                                </p>
+                                <p>
+                                    <strong>Horas jogadas:</strong>{" "}
+                                    {jogador.dados.horasJogadas}
+                                </p>
+                                <p>
+                                    <strong>Função Principal:</strong>{" "}
+                                    {jogador.dados.mainRole}
+                                </p>
+                                <p>
+                                    <strong>Preferência de jogo:</strong>{" "}
+                                    {jogador.dados.preferenciaJogo}
+                                </p>
                             </div>
                         )}
                     </CardContent>
