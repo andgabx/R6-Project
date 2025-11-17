@@ -112,7 +112,7 @@ INSERT INTO Operador (ID_Operador, Nome, Velocidade, Blindagem, Unidade_Especial
 (19, 'Kali', 2, 2, 'NIGHTHAVEN'), (20, 'Iana', 2, 2, 'REU'), (21, 'Ace', 2, 2, 'NIGHTHAVEN'),
 (22, 'Zero', 2, 2, 'ROS'), (23, 'Flores', 2, 2, 'FES'), (24, 'Osa', 2, 2, 'NIGHTHAVEN'),
 (25, 'Sens', 1, 3, 'S.Q.G.'), (26, 'Grim', 3, 1, 'NIGHTHAVEN'), (27, 'Brava', 3, 1, 'Viperstrike'),
-(28, 'Ram', 1, 3, 'Redhammer'), (29, 'Striker (2025)', 2, 2, 'Ghosteyes'), (30, 'Vortex (2025)', 2, 2, 'Ghosteyes'),
+(28, 'Ram', 1, 3, 'Redhammer'), (29, 'Striker', 2, 2, 'Ghosteyes'), (30, 'Sentry', 2, 2, 'Ghosteyes'),
 (31, 'Smoke', 2, 2, 'S.A.S.'), (32, 'Mute', 2, 2, 'S.A.S.'), (33, 'Castle', 2, 2, 'FBI SWAT'),
 (34, 'Pulse', 3, 1, 'FBI SWAT'), (35, 'Doc', 1, 3, 'GIGN'), (36, 'Rook', 1, 3, 'GIGN'),
 (37, 'Kapkan', 2, 2, 'Spetsnaz'), (38, 'Tachanka', 1, 3, 'Spetsnaz'), (39, 'Jager', 2, 2, 'GSG 9'),
