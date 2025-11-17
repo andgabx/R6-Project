@@ -4,6 +4,19 @@ import lombok.Data;
 
 @Data
 public class Time {
-    private Integer idTime;     // ID_Time
-    private Integer partidaId;  // fk_Partida_ID_Partida
+    private Integer idTime;
+    private String nome;   
+
+    public Integer getIdTime() {
+        return idTime;
+    }
+    public void setIdTime(Integer idTime) {
+        this.idTime = idTime;
+    }
+    public String getNome() {
+        return nome;
+    }
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
 }

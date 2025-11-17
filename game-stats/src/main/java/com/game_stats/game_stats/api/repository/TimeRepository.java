@@ -19,11 +19,11 @@ public class TimeRepository {
     private static final BeanPropertyRowMapper<Time> ROW_MAPPER =
             new BeanPropertyRowMapper<>(Time.class);
 
-    public List<Time> findAll() {
+public List<Time> findAll() {
         String sql = """
                 SELECT
-                    ID_Time        AS idTime,
-                    fk_Partida_ID_Partida AS partidaId
+                    ID_Time AS idTime,
+                    Nome    AS nome
                 FROM Time
                 """;
         return jdbcTemplate.query(sql, ROW_MAPPER);
@@ -32,8 +32,8 @@ public class TimeRepository {
     public Optional<Time> findById(Integer id) {
         String sql = """
                 SELECT
-                    ID_Time        AS idTime,
-                    fk_Partida_ID_Partida AS partidaId
+                    ID_Time AS idTime,
+                    Nome    AS nome
                 FROM Time
                 WHERE ID_Time = :id
                 """;
@@ -44,25 +44,25 @@ public class TimeRepository {
                 .findFirst();
     }
 
-    public int save(Time time) {
+public int save(Time time) {
         String sql = """
-                INSERT INTO Time (fk_Partida_ID_Partida)
-                VALUES (:partidaId)
+                INSERT INTO Time (Nome)
+                VALUES (:nome)
                 """;
         MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("partidaId", time.getPartidaId());
+                .addValue("nome", time.getNome()); // Assumindo que a classe Time tem getNome()
         return jdbcTemplate.update(sql, params);
     }
 
-    public int update(Time time) {
+public int update(Time time) {
         String sql = """
                 UPDATE Time
-                   SET fk_Partida_ID_Partida = :partidaId
+                   SET Nome = :nome
                  WHERE ID_Time = :id
                 """;
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", time.getIdTime())
-                .addValue("partidaId", time.getPartidaId());
+                .addValue("nome", time.getNome()); // Assumindo que a classe Time tem getNome()
         return jdbcTemplate.update(sql, params);
     }
 

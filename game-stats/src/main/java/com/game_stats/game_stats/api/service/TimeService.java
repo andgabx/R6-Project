@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class TimeService {
 
     private final TimeRepository timeRepository;
-    private final PartidaRepository partidaRepository;
+    // Removido PartidaRepository, não é usado aqui
     private final JogadorRepository jogadorRepository;
     private final DadosService dadosService;
 
@@ -41,13 +41,15 @@ public class TimeService {
     }
 
     public TimeResponseDTO criar(TimeRequestDTO dto) {
-        Partida partida = partidaRepository.findById(dto.getPartidaId())
-                .orElseThrow(() -> new RuntimeException("Partida não encontrada"));
-
+        // A lógica de Partida não pertence à criação de um Time
+        // Um Time existe independentemente de uma Partida
+        
         Time novoTime = new Time();
-        novoTime.setPartidaId(partida.getIdPartida());
+        novoTime.setNome(dto.getNome()); // Assumindo que TimeRequestDTO terá 'nome'
         timeRepository.save(novoTime);
 
+        // Esta busca pelo ID máximo é perigosa e pode falhar em produção.
+        // O ideal era o save() do repository retornar o ID.
         Integer novoId = timeRepository.findAll().stream()
                 .map(Time::getIdTime)
                 .max(Comparator.naturalOrder())
@@ -64,10 +66,8 @@ public class TimeService {
         Time existente = timeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Time não encontrado"));
 
-        partidaRepository.findById(dto.getPartidaId())
-                .orElseThrow(() -> new RuntimeException("Partida não encontrada"));
-
-        existente.setPartidaId(dto.getPartidaId());
+        // A lógica de Partida também não pertence aqui
+        existente.setNome(dto.getNome()); // Assumindo que TimeRequestDTO terá 'nome'
         timeRepository.update(existente);
 
         timeRepository.clearJogadores(id);
@@ -79,6 +79,7 @@ public class TimeService {
     }
 
     public void deletar(Integer id) {
+        // ... (seu método deletar está correto)
         timeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Time não encontrado"));
 
@@ -87,6 +88,7 @@ public class TimeService {
     }
 
     private void vincularJogadores(Integer timeId, List<Integer> jogadorIds) {
+        // ... (seu método vincularJogadores está correto)
         for (Integer jogadorId : jogadorIds) {
             Jogador jogador = jogadorRepository.findById(jogadorId)
                     .orElseThrow(() -> new RuntimeException("Jogador ID " + jogadorId + " não encontrado"));
@@ -97,13 +99,13 @@ public class TimeService {
     private TimeResponseDTO toResponse(Time time) {
         TimeResponseDTO dto = new TimeResponseDTO();
         dto.setIdTime(time.getIdTime());
-        dto.setPartidaId(time.getPartidaId());
+        dto.setNome(time.getNome()); // Corrigido de getPartidaId()
 
         List<JogadorResponseDTO> jogadores = timeRepository.findJogadoresByTimeId(time.getIdTime())
                 .stream()
-                .map(jogadorRepository::findById)   // Optional<Jogador>
-                .flatMap(Optional::stream)          // Jogador
-                .map(this::toJogadorResponse)       // JogadorResponseDTO
+                .map(jogadorRepository::findById)
+                .flatMap(Optional::stream)
+                .map(this::toJogadorResponse)
                 .collect(Collectors.toList());
 
         dto.setJogadores(jogadores);
@@ -111,6 +113,7 @@ public class TimeService {
     }
 
     private JogadorResponseDTO toJogadorResponse(Jogador jogador) {
+        // ... (seu método toJogadorResponse está correto)
         JogadorResponseDTO dto = new JogadorResponseDTO();
         dto.setIdJogador(jogador.getIdJogador());
         dto.setNickname(jogador.getNickname());

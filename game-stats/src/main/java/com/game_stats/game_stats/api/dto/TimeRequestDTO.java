@@ -7,7 +7,8 @@ import java.util.List;
 
 @Data
 public class TimeRequestDTO {
-
+    private String nome;
+    private String tag;
     @NotNull
     private Integer partidaId;          // fk_Partida_ID_Partida
 
