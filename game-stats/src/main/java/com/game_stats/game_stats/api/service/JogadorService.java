@@ -180,9 +180,28 @@ public class JogadorService {
         dados.setHorasJogadas(dto.getHorasJogadas());
         dados.setMainRole(dto.getMainRole());
         dados.setPreferenciaJogo(dto.getPreferenciaJogo());
-        dados.setFkMapaFavorito(dto.getMapaFavoritoId());
-        dados.setFkMapaMaisVitorias(dto.getMapaMaisVitoriasId());
-        dados.setFkMapaMaisDerrotas(dto.getMapaMaisDerrotasId());
+
+        // --- INÍCIO DA CORREÇÃO ---
+        // Validar FKs do Mapa antes de salvar
+        if (dto.getMapaFavoritoId() != null) {
+            mapaRepository.findById(dto.getMapaFavoritoId())
+                    .orElseThrow(() -> new IllegalArgumentException("Mapa (favorito) com ID " + dto.getMapaFavoritoId() + " não existe."));
+            dados.setFkMapaFavorito(dto.getMapaFavoritoId());
+        }
+
+        if (dto.getMapaMaisVitoriasId() != null) {
+            mapaRepository.findById(dto.getMapaMaisVitoriasId())
+                    .orElseThrow(() -> new IllegalArgumentException("Mapa (mais vitorias) com ID " + dto.getMapaMaisVitoriasId() + " não existe."));
+            dados.setFkMapaMaisVitorias(dto.getMapaMaisVitoriasId());
+        }
+
+        if (dto.getMapaMaisDerrotasId() != null) {
+            mapaRepository.findById(dto.getMapaMaisDerrotasId())
+                    .orElseThrow(() -> new IllegalArgumentException("Mapa (mais derrotas) com ID " + dto.getMapaMaisDerrotasId() + " não existe."));
+            dados.setFkMapaMaisDerrotas(dto.getMapaMaisDerrotasId());
+        }
+        // --- FIM DA CORREÇÃO ---
+
         return dados;
     }
 }
