@@ -1,0 +1,295 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { mapaService } from "@/services/MapaService";
+import { Mapa } from "@/types/mapa";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Map, Loader2 } from "lucide-react";
+
+// Descrições/histórias dos mapas (mock data - pode ser substituído por dados reais)
+const mapDescriptions: Record<string, { description: string; image?: string }> =
+    {
+        Banco: {
+            description:
+                "O Banco é um mapa urbano localizado em um distrito financeiro. Os operadores devem navegar por escritórios modernos, cofres seguros e áreas de lobby. A arquitetura vertical oferece múltiplas rotas de ataque e defesa.",
+        },
+        Fronteira: {
+            description:
+                "Fronteira é um posto de controle militar na fronteira entre dois países. O mapa apresenta estruturas fortificadas, torres de observação e áreas abertas que exigem estratégia cuidadosa tanto para atacantes quanto defensores.",
+        },
+        "Casa de Campo": {
+            description:
+                "Uma luxuosa propriedade rural que serve como esconderijo. O mapa combina áreas internas elegantes com espaços externos abertos, oferecendo diversas opções táticas para ambos os times.",
+        },
+        Litoral: {
+            description:
+                "Litoral é um resort à beira-mar transformado em zona de combate. O mapa apresenta múltiplos níveis, varandas com vista para o oceano e áreas internas que criam oportunidades para emboscadas e manobras táticas.",
+        },
+        Consulado: {
+            description:
+                "O Consulado é uma embaixada fortificada em um país estrangeiro. Com múltiplos andares, salas de reuniões e áreas administrativas, oferece um ambiente complexo para operações táticas.",
+        },
+        Favela: {
+            description:
+                "Favela representa um ambiente urbano denso e vertical. As estruturas próximas criam múltiplas rotas verticais e horizontais, exigindo comunicação constante e conhecimento do mapa para sucesso.",
+        },
+        Fortaleza: {
+            description:
+                "Uma fortaleza histórica adaptada para combate moderno. O mapa combina arquitetura antiga com elementos contemporâneos, oferecendo posições defensivas estratégicas e rotas de infiltração.",
+        },
+        "Hereford (Novo)": {
+            description:
+                "A nova versão da Base Hereford mantém a essência da instalação de treinamento original, mas com melhorias significativas no layout e design. É um mapa icônico que testa habilidades fundamentais.",
+        },
+        "Arranha-Céu (Novo)": {
+            description:
+                "Um arranha-céu moderno no coração de uma metrópole. O mapa vertical oferece múltiplos níveis e rotas, criando um ambiente dinâmico onde o controle vertical é crucial para a vitória.",
+        },
+        "Canal (Novo)": {
+            description:
+                "Canal é um mapa aquático único com estruturas sobre a água. A navegação requer atenção especial às rotas e pontos de entrada, criando um ambiente tático distinto.",
+        },
+        "Kafe Dostoyevsky": {
+            description:
+                "Um café elegante em São Petersburgo que serve como local de operação. O mapa combina áreas públicas com espaços privados, oferecendo múltiplas estratégias de ataque e defesa.",
+        },
+        "Oregon (Novo)": {
+            description:
+                "A nova versão de Oregon mantém o ambiente rural americano, mas com melhorias significativas. O mapa apresenta uma fazenda com múltiplos edifícios e áreas abertas.",
+        },
+        "Outback (Novo)": {
+            description:
+                "Um posto de serviço no deserto australiano. O mapa compacto oferece combate intenso em espaços fechados, exigindo precisão e coordenação da equipe.",
+        },
+        "Parque Temático (Novo)": {
+            description:
+                "Um parque temático abandonado que serve como campo de batalha. O mapa apresenta áreas temáticas distintas, criando um ambiente único e memorável para combate.",
+        },
+        "Arranha-Céu": {
+            description:
+                "A versão clássica do Arranha-Céu, um mapa vertical icônico que testa habilidades de combate em múltiplos níveis.",
+        },
+        Torre: {
+            description:
+                "Uma torre de comunicação que oferece combate vertical intenso. O mapa testa habilidades de navegação e controle de múltiplos níveis simultaneamente.",
+        },
+        Vila: {
+            description:
+                "Uma vila rural que combina estruturas tradicionais com elementos modernos. O mapa oferece combate em espaços abertos e fechados.",
+        },
+        Iate: {
+            description:
+                "Um iate de luxo transformado em zona de combate. O espaço compacto e os múltiplos níveis criam um ambiente único para operações táticas.",
+        },
+        "Nighthaven Labs": {
+            description:
+                "Os laboratórios da Nighthaven representam tecnologia de ponta e pesquisa avançada. O mapa moderno oferece ambientes científicos com equipamentos que podem ser usados taticamente.",
+        },
+        Covil: {
+            description:
+                "Um esconderijo secreto usado por organizações criminosas. O mapa apresenta áreas escuras e labirínticas que favorecem emboscadas e combate furtivo.",
+        },
+        Esmeralda: {
+            description:
+                "Esmeralda é um mapa que combina elementos urbanos e naturais, oferecendo uma experiência tática única com múltiplas rotas e estratégias.",
+        },
+        "Estádio (Ranqueado)": {
+            description:
+                "Um estádio esportivo adaptado para combate. O mapa apresenta áreas amplas e estruturas complexas que testam habilidades de equipe.",
+        },
+        "Casa (Ranqueado)": {
+            description:
+                "Uma casa residencial que serve como campo de batalha. O mapa compacto oferece combate intenso em múltiplos cômodos.",
+        },
+        "Avião (Casual)": {
+            description:
+                "Um avião comercial transformado em zona de combate. O espaço confinado e linear cria um ambiente único para operações táticas.",
+        },
+        "Base Hereford (Antiga)": {
+            description:
+                "A versão clássica da Base Hereford, um mapa icônico que serviu como local de treinamento. Mantém a essência do mapa original com seu design característico.",
+        },
+        "Universidade Bartlett": {
+            description:
+                "Uma universidade que serve como campo de batalha. O mapa apresenta salas de aula, corredores e áreas comuns que oferecem múltiplas rotas táticas.",
+        },
+        "Fábrica (TDM)": {
+            description:
+                "Uma fábrica industrial adaptada para combate. O mapa oferece espaços abertos e áreas de cobertura para diferentes estilos de jogo.",
+        },
+        "Arena (TDM)": {
+            description:
+                "Uma arena esportiva transformada em campo de batalha. O mapa oferece combate em espaços amplos com múltiplas áreas de cobertura.",
+        },
+        "Mapa de Evento 1": {
+            description:
+                "Um mapa especial criado para eventos e temporadas limitadas. Oferece uma experiência única e memorável para os jogadores.",
+        },
+        "Mapa de Evento 2": {
+            description:
+                "Outro mapa especial de evento, apresentando design e mecânicas únicas para criar experiências de jogo distintas.",
+        },
+    };
+
+export default function MapasPage() {
+    const [mapas, setMapas] = useState<Mapa[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedMapa, setSelectedMapa] = useState<Mapa | null>(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+
+    useEffect(() => {
+        const fetchMapas = async () => {
+            try {
+                setLoading(true);
+                const data = await mapaService.listAll();
+                setMapas(data);
+            } catch (error) {
+                console.error("Erro ao buscar mapas:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMapas();
+    }, []);
+
+    const handleCardClick = (mapa: Mapa) => {
+        setSelectedMapa(mapa);
+        setDialogOpen(true);
+    };
+
+    const getMapDescription = (nome: string) => {
+        return (
+            mapDescriptions[nome]?.description ||
+            `O mapa ${nome} oferece uma experiência única de combate tático. Explore suas rotas e estratégias para dominar o campo de batalha.`
+        );
+    };
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="flex flex-col items-center gap-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-muted-foreground">
+                            Carregando mapas...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="container mx-auto px-4 py-8">
+            {/* Header */}
+            <div className="mb-8">
+                <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
+                    <Map className="h-10 w-10 text-primary" />
+                    Mapas do Jogo
+                </h1>
+                <p className="text-muted-foreground">
+                    Explore todos os mapas disponíveis no Rainbow Six Siege
+                </p>
+            </div>
+
+            {/* Grid de Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {mapas.map((mapa) => (
+                    <Card
+                        key={mapa.idMapa}
+                        className="hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                        onClick={() => handleCardClick(mapa)}
+                    >
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center justify-center mb-3">
+                                <div className="p-3 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
+                                    <Map className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                                </div>
+                            </div>
+                            <CardTitle className="text-center text-base group-hover:text-primary transition-colors">
+                                {mapa.nome}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <CardDescription className="text-center text-xs">
+                                Clique para ver detalhes
+                            </CardDescription>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            {/* Dialog de Detalhes */}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl flex items-center gap-2">
+                            <Map className="h-6 w-6 text-primary" />
+                            {selectedMapa?.nome}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Informações e história do mapa
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-4 space-y-4">
+                        {/* Imagem do Mapa (placeholder - pode ser substituído por imagens reais) */}
+                        <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center">
+                            <div className="text-center">
+                                <Map className="h-16 w-16 mx-auto text-muted-foreground mb-2" />
+                                <p className="text-sm text-muted-foreground">
+                                    {selectedMapa?.nome}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Descrição */}
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-lg">Descrição</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                {selectedMapa
+                                    ? getMapDescription(selectedMapa.nome)
+                                    : ""}
+                            </p>
+                        </div>
+
+                        {/* Informações Adicionais */}
+                        <div className="pt-4 border-t">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs text-muted-foreground mb-1">
+                                        ID do Mapa
+                                    </p>
+                                    <p className="text-sm font-medium">
+                                        #{selectedMapa?.idMapa}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-muted-foreground mb-1">
+                                        Nome
+                                    </p>
+                                    <p className="text-sm font-medium">
+                                        {selectedMapa?.nome}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+}

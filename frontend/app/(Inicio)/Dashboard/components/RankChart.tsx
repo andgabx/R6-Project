@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 import {
@@ -14,79 +14,121 @@ import {
 import {
     ChartConfig,
     ChartContainer,
-    ChartLegend,
     ChartLegendContent,
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Jogador } from "@/types/jogador";
+import { jogadorService } from "@/services/JogadorService";
+import { RankGroup } from "@/types/jogador";
 
-interface RankChartProps {
-    players: Jogador[];
-}
+export const RankChart = () => {
+    const [rankGroups, setRankGroups] = useState<RankGroup[]>([]);
+    const [loading, setLoading] = useState(true);
 
-export const RankChart = ({ players }: RankChartProps) => {
-    // 👇 ALTERAÇÃO AQUI: Lógica de dados para agrupar os ranks
-    const rankChartData = useMemo(() => {
-        return players.reduce((acc, player) => {
-            const rawRank = player.dados?.rankJogador || "Desconhecido";
-
-            // Pega o nome base do rank (ex: "Ouro I" -> "Ouro")
-            // Se não houver espaço, usa o nome completo (ex: "Campeão")
-            const rankName = rawRank.split(" ")[0];
-
-            const existing = acc.find((item) => item.name === rankName);
-            if (existing) {
-                existing.value++;
-            } else {
-                acc.push({ name: rankName, value: 1 });
+    useEffect(() => {
+        const fetchRankGroups = async () => {
+            try {
+                setLoading(true);
+                const data = await jogadorService.getRankGroups();
+                setRankGroups(data);
+            } catch (error) {
+                console.error("Erro ao buscar dados de rank:", error);
+            } finally {
+                setLoading(false);
             }
-            return acc;
-        }, [] as { name: string; value: number }[]);
-    }, [players]);
-
-    // 👇 ALTERAÇÃO AQUI: Mapa de cores simplificado para os ranks base
-    const rankChartConfig = useMemo(() => {
-        // Mapeia os NOMES BASE para as cores
-        const rankColorMap: { [key: string]: string } = {
-            Desconhecido: "hsl(210, 9%, 45%)",
-            Cobre: "hsl(20, 60%, 45%)",
-            Bronze: "hsl(30, 60%, 40%)",
-            Prata: "hsl(210, 10%, 75%)",
-            Ouro: "hsl(50, 80%, 50%)",
-            Platina: "hsl(200, 40%, 60%)",
-            Esmeralda: "hsl(140, 60%, 35%)",
-            Diamante: "hsl(190, 80%, 50%)",
-            Campeão: "hsl(320, 70%, 50%)",
         };
 
-        const defaultColor = "hsl(0, 0%, 70%)";
+        fetchRankGroups();
+    }, []);
+
+    // Converte os dados do endpoint para o formato esperado pelo chart
+    const rankChartData = useMemo(() => {
+        return rankGroups.map((group) => ({
+            name: group.chave,
+            value: group.contagem,
+        }));
+    }, [rankGroups]);
+
+    // Mapa de cores para os ranks usando cores do tema
+    const rankChartConfig = useMemo(() => {
+        // Função para obter a cor base do rank (remove o número/romano)
+        const getRankBase = (rankName: string): string => {
+            return rankName.split(" ")[0];
+        };
+
+        // Mapeia cada rank base para uma cor única do tema (chart-1 a chart-10)
+        const rankBaseColorMap: { [key: string]: string } = {
+            Desconhecido: "var(--chart-3)",
+            Cobre: "var(--chart-6)",
+            Bronze: "var(--chart-7)",
+            Prata: "var(--chart-4)",
+            Ouro: "var(--chart-2)",
+            Platina: "var(--chart-5)",
+            Esmeralda: "var(--chart-8)",
+            Diamante: "var(--chart-1)",
+            Campeão: "var(--chart-9)",
+        };
+
+        const defaultColor = "var(--chart-3)";
 
         const config: ChartConfig = {};
         rankChartData.forEach((item) => {
+            const rankBase = getRankBase(item.name);
             config[item.name] = {
-                label: item.name,
-                // O 'item.name' agora é "Ouro", "Prata", etc.
-                color: rankColorMap[item.name] || defaultColor,
+                label: `${item.name} (${item.value})`,
+                color: rankBaseColorMap[rankBase] || defaultColor,
             };
         });
         return config;
     }, [rankChartData]);
 
-    return (
-        <ChartContainer config={rankChartConfig} className="w-full">
-            <Card className="flex flex-col">
-                <CardHeader className="items-center pb-0">
-                    <CardTitle>Jogadores por Rank (Agrupado)</CardTitle>
+    if (loading) {
+        return (
+            <Card className="flex flex-col h-full overflow-hidden">
+                <CardHeader className="items-center pb-0 flex-shrink-0">
+                    <CardTitle>Jogadores por Rank</CardTitle>
                     <CardDescription>
-                        Distribuição de jogadores por tier de rank
+                        Distribuição de jogadores por rank
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-1 items-center justify-center pb-0">
+                <CardContent className="flex flex-1 items-center justify-center pb-0 min-h-0">
+                    <p className="text-muted-foreground">Carregando...</p>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (rankChartData.length === 0) {
+        return (
+            <Card className="flex flex-col h-full overflow-hidden">
+                <CardHeader className="items-center pb-0 flex-shrink-0">
+                    <CardTitle>Jogadores por Rank</CardTitle>
+                    <CardDescription>
+                        Distribuição de jogadores por rank
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-1 items-center justify-center pb-0 min-h-0">
+                    <p className="text-muted-foreground">
+                        Nenhum dado disponível
+                    </p>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    return (
+        <ChartContainer config={rankChartConfig} className="w-full h-[400px]">
+            <Card className="flex flex-col h-full overflow-hidden">
+                <CardHeader className="items-center pb-0 flex-shrink-0">
+                    <CardTitle>Jogadores por Rank</CardTitle>
+                    <CardDescription>
+                        Distribuição de jogadores por rank
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-1 items-center justify-center pb-0 min-h-0">
                     <div className="mx-auto aspect-square w-full max-w-[250px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
-                                {/* Tooltip corrigido para mostrar o nome */}
                                 <ChartTooltip
                                     cursor={false}
                                     content={<ChartTooltipContent />}
@@ -110,27 +152,20 @@ export const RankChart = ({ players }: RankChartProps) => {
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
-                    
                 </CardContent>
 
-                {/* A legenda agora mostrará os ranks agrupados */}
-                <CardFooter className="flex justify-center p-4 text-sm">
-                    
-                    {/* Note como está mais limpo.
-                      ChartLegend é o único componente que você precisa.
-                    */}
-                    <ChartLegend
-                        // 1. Passe o payload diretamente para o ChartLegend
-                        payload={rankChartData.map((item) => ({
-                            value: `${item.name} (${item.value})`,
-                            type: "circle",
-                            color: rankChartConfig[item.name]?.color,
-                        }))}
-
-                        // 2. Passe o className do layout e a correção de cor AQUI
-                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-42 max-h-40"
-                    />
-
+                <CardFooter className="flex justify-center items-center p-4 text-sm flex-shrink-0 w-full">
+                    <div className="w-full">
+                        <ChartLegendContent
+                            payload={rankChartData.map((item) => ({
+                                value: item.name,
+                                dataKey: item.name,
+                                type: "circle",
+                                color: rankChartConfig[item.name]?.color,
+                            }))}
+                            className="flex flex-wrap justify-center items-center gap-3 gap-y-2"
+                        />
+                    </div>
                 </CardFooter>
             </Card>
         </ChartContainer>

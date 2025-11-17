@@ -1,5 +1,5 @@
 import api from "../lib/api";
-import { Jogador, JogadorRequest } from "../types/jogador";
+import { Jogador, JogadorRequest, JogadorPerfil, RankGroup, RankLog } from "../types/jogador";
 
 export const jogadorService = {
   listAll: async (): Promise<Jogador[]> => {
@@ -38,6 +38,21 @@ export const jogadorService = {
 
   listByMinLevel: async (minLevel: number): Promise<Jogador[]> => {
     const response = await api.get<Jogador[]>(`/players/minlevel?min=${minLevel}`);
+    return response.data;
+  },
+
+  listPerfis: async (): Promise<JogadorPerfil[]> => {
+    const response = await api.get<JogadorPerfil[]>("/stats/view/perfis-jogadores");
+    return response.data;
+  },
+
+  getRankGroups: async (): Promise<RankGroup[]> => {
+    const response = await api.get<RankGroup[]>("/stats/group/by-rank");
+    return response.data;
+  },
+
+  getRankLogs: async (): Promise<RankLog[]> => {
+    const response = await api.get<RankLog[]>("/stats/trigger/rank-logs");
     return response.data;
   }
 };

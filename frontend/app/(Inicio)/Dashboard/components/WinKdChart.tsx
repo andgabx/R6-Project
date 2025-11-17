@@ -20,9 +20,8 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import {
-    ChartConfig,
     ChartContainer,
-    ChartLegend,
+    ChartLegendContent,
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -32,13 +31,7 @@ interface WlKdChartProps {
     players: Jogador[];
 }
 
-// Assumindo que seu tipo 'Jogador' tem estes campos:
-// player.dados.kd (number)
-// player.dados.wl (number, ex: 54.5 para 54.5%)
-// player.nome (string)
-
 export const WlKdChart = ({ players }: WlKdChartProps) => {
-    
     // Processa os dados brutos dos jogadores para o formato do gráfico
     const chartData = useMemo(() => {
         return players.map((player) => ({
@@ -50,18 +43,21 @@ export const WlKdChart = ({ players }: WlKdChartProps) => {
     }, [players]);
 
     // Configuração de cor e label para o ChartContainer
-    const chartConfig = useMemo(() => ({
-        wl: {
-            label: "W/L %",
-            color: "hsl(var(--chart-1))", // Cor principal (azul/ciano)
-        },
-    }), []);
+    const chartConfig = useMemo(
+        () => ({
+            wl: {
+                label: "W/L %",
+                color: "var(--chart-1)",
+            },
+        }),
+        []
+    );
 
     return (
         <ChartContainer
             config={chartConfig}
             // Gráficos de dispersão geralmente precisam de mais altura
-            className="w-full h-[400px]" 
+            className="w-full h-[400px]"
         >
             <Card className="flex flex-col h-full">
                 <CardHeader className="items-center pb-0">
@@ -70,7 +66,7 @@ export const WlKdChart = ({ players }: WlKdChartProps) => {
                         Relação entre Taxa de Vitórias e K/D de cada jogador
                     </CardDescription>
                 </CardHeader>
-                
+
                 <CardContent className="flex-1">
                     <ResponsiveContainer width="100%" height="100%">
                         <ScatterChart
@@ -83,7 +79,7 @@ export const WlKdChart = ({ players }: WlKdChartProps) => {
                             }}
                         >
                             <CartesianGrid strokeDasharray="3 3" />
-                            
+
                             <XAxis
                                 type="number"
                                 dataKey="kd"
@@ -97,20 +93,25 @@ export const WlKdChart = ({ players }: WlKdChartProps) => {
                                 name="W/L %"
                                 unit="" // Adiciona o sufixo '%'
                                 // Limita o domínio do eixo Y de 0 a 100+
-                                domain={[0, 'dataMax + 5']} 
+                                domain={[0, "dataMax + 5"]}
                                 tickFormatter={(value) => `${value}0%`}
                             />
-                            
+
                             <ChartTooltip
                                 cursor={false}
-                                content={<ChartTooltipContent 
-                                    // Mostra o nome do jogador no título do tooltip
-                                    labelFormatter={(label, payload) => {
-                                        return payload?.[0]?.payload?.nome || "";
-                                    }}
-                                />}
+                                content={
+                                    <ChartTooltipContent
+                                        // Mostra o nome do jogador no título do tooltip
+                                        labelFormatter={(label, payload) => {
+                                            return (
+                                                payload?.[0]?.payload?.nome ||
+                                                ""
+                                            );
+                                        }}
+                                    />
+                                }
                             />
-                            
+
                             <Scatter
                                 name="W/L %" // Conecta ao chartConfig 'wl'
                                 dataKey="wl" // Necessário para o tooltip funcionar bem
@@ -120,15 +121,17 @@ export const WlKdChart = ({ players }: WlKdChartProps) => {
                         </ScatterChart>
                     </ResponsiveContainer>
                 </CardContent>
-                
-                <CardFooter className="flex justify-center p-4 text-sm">
-                    <ChartLegend
-                        payload={[{
-                            value: "W/L % do Jogador",
-                            type: "square",
-                            color: chartConfig.wl.color,
-                        }]}
-                        className="[&_p]:text-foreground"
+
+                <CardFooter className="flex justify-center items-center p-4 text-sm">
+                    <ChartLegendContent
+                        payload={[
+                            {
+                                value: "W/L % do Jogador",
+                                dataKey: "wl",
+                                type: "square",
+                                color: chartConfig.wl.color,
+                            },
+                        ]}
                     />
                 </CardFooter>
             </Card>

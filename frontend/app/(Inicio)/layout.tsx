@@ -1,5 +1,4 @@
 "use client";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 import {
     IconArrowLeft,
@@ -7,8 +6,8 @@ import {
     IconSettings,
     IconUserBolt,
 } from "@tabler/icons-react";
-import Link from "next/link";
 import { useState } from "react";
+import { CreatePlayerButton } from "@/components/create-player-button";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     const links = [
@@ -42,8 +41,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         },
     ];
     const [open, setOpen] = useState(false);
+
     return (
-        <div className="flex flex-col md:flex-row flex-1 w-full h-screen">
+        <div className="flex flex-col md:flex-row flex-1 w-full h-screen relative">
             <Sidebar open={open} setOpen={setOpen}>
                 <SidebarBody className="justify-between gap-10 rounded-r-3xl">
                     <div className="flex flex-col flex-1">
@@ -56,6 +56,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </SidebarBody>
             </Sidebar>
             <main className="flex-1 overflow-y-auto">{children}</main>
+                <CreatePlayerButton />
+
         </div>
     );
 }

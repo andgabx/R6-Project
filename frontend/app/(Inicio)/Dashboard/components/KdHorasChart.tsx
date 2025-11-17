@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/card";
 import {
     ChartContainer,
-    ChartLegend,
+    ChartLegendContent,
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -52,15 +52,14 @@ export const KdHorasChart = ({ players }: KdHorasChartProps) => {
     const chartConfig = useMemo(() => ({
         kd: {
             label: "K/D",
-            color: "hsl(var(--chart-1))", // Cor principal (azul/ciano)
+            color: "var(--chart-1)",
         },
     }), []);
 
     return (
         <ChartContainer
             config={chartConfig}
-            // Gráficos de dispersão geralmente precisam de mais altura
-            className="w-full" 
+            className="w-full h-[400px]"
         >
             <Card className="flex flex-col h-full">
                 <CardHeader className="items-center pb-0">
@@ -69,7 +68,6 @@ export const KdHorasChart = ({ players }: KdHorasChartProps) => {
                         Relação entre K/D e horas de jogo de cada jogador
                     </CardDescription>
                 </CardHeader>
-                
                 <CardContent className="flex-1">
                     <ResponsiveContainer width="100%" height="100%">
                         <ScatterChart
@@ -119,15 +117,14 @@ export const KdHorasChart = ({ players }: KdHorasChartProps) => {
                     </ResponsiveContainer>
                 </CardContent>
                 
-                <CardFooter className="flex justify-center p-4 text-sm">
-                    {/* A legenda para scatter precisa ser criada manualmente */}
-                    <ChartLegend
+                <CardFooter className="flex justify-center items-center p-4 text-sm">
+                    <ChartLegendContent
                         payload={[{
                             value: "K/D do Jogador",
+                            dataKey: "kd",
                             type: "square",
                             color: chartConfig.kd.color,
                         }]}
-                        className="[&_p]:text-foreground"
                     />
                 </CardFooter>
             </Card>

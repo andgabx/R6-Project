@@ -1,161 +1,196 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { jogadorService } from "@/services/JogadorService";
+import { Jogador } from "@/types/jogador";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import {
-    Shield,
-    Target,
     Users,
-    Trophy,
-    Gamepad2,
-    Crosshair,
+    Shield,
     Map,
-    BarChart3,
-    ArrowRight,
+    TrendingUp,
     Activity,
-    Award,
-    Zap,
+    Clock,
+    BarChart3,
 } from "lucide-react";
-import Link from "next/link";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { MetricCard } from "./(Inicio)/Dashboard/components/MetricCard";
+import { ActionCard } from "./(Inicio)/Dashboard/components/ActionCard";
+import { PerformanceChart } from "./(Inicio)/Dashboard/components/PerformanceChart";
+import { RecentActivity } from "./(Inicio)/Dashboard/components/RecentActivity";
+import { RecentPlayersTable } from "./(Inicio)/Dashboard/components/RecentPlayersTable";
 
 export default function HomePage() {
-    const [showWelcomeModal, setShowWelcomeModal] = useState(true);
+    const [players, setPlayers] = useState<Jogador[]>([]);
 
-    const navigationCards = [
-        {
-            title: "Dashboard",
-            description:
-                "Visão geral das estatísticas e métricas principais da plataforma",
-            icon: BarChart3,
-            href: "/Dashboard",
-            color: "text-primary",
-            bgColor: "bg-primary/10",
-            stats: "Análises em tempo real",
-        },
-        {
-            title: "Jogadores",
-            description:
-                "Gerencie perfis, rankings e estatísticas detalhadas dos jogadores",
-            icon: Users,
-            href: "/Jogadores",
-            color: "text-chart-1",
-            bgColor: "bg-chart-1/10",
-            stats: "Perfis completos",
-        },
-        {
-            title: "Operadores (AINDA NÃO IMPLEMENTADO)",
-            description:
-                "Explore habilidades, estatísticas e loadouts dos operadores",
-            icon: Shield,
-            href: "/operators",
-            color: "text-chart-2",
-            bgColor: "bg-chart-2/10",
-            stats: "Explore os Operadores",
-        },
-        {
-            title: "Arsenal",
-            description:
-                "Catálogo completo de armas, acessórios e equipamentos",
-            icon: Crosshair,
-            href: "/Armas",
-            color: "text-chart-3",
-            bgColor: "bg-chart-3/10",
-            stats: "Armas & Acessórios",
-        },
-        {
-            title: "Partidas (AINDA NÃO IMPLEMENTADO)",
-            description:
-                "Histórico de partidas, mapas e análise de performance",
-            icon: Trophy,
-            href: "/matches",
-            color: "text-chart-4",
-            bgColor: "bg-chart-4/10",
-            stats: "Histórico completo",
-        },
-        {
-            title: "Mapas (AINDA NÃO IMPLEMENTADO)",
-            description:
-                "Informações detalhadas sobre todos os mapas competitivos",
-            icon: Map,
-            href: "/maps",
-            color: "text-chart-5",
-            bgColor: "bg-chart-5/10",
-            stats: "Mapas oficiais",
-        },
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const perfis = await jogadorService.listPerfis();
+                // Converter JogadorPerfil para Jogador
+                const jogadores: Jogador[] = perfis.map((perfil) => ({
+                    idJogador: perfil.idJogador,
+                    nickname: perfil.nickname,
+                    operadoresAtaque: [],
+                    operadoresDefesa: [],
+                    dados: {
+                        id: perfil.idJogador,
+                        nivel: perfil.nivel,
+                        rankJogador: perfil.rankJogador,
+                        winrate: perfil.winrateGeral,
+                        kd: perfil.kd,
+                        horasJogadas: perfil.horasJogadas,
+                        plataforma: perfil.plataforma,
+                        headshot: 0,
+                        mainRole: "",
+                        preferenciaJogo: "",
+                        mapaFavorito: perfil.mapaFavorito
+                            ? { idMapa: 0, nome: perfil.mapaFavorito }
+                            : null,
+                        mapaMaisVitorias: perfil.mapaMaisVitorias
+                            ? { idMapa: 0, nome: perfil.mapaMaisVitorias }
+                            : null,
+                        mapaMaisDerrotas: perfil.mapaMaisDerrotas
+                            ? { idMapa: 0, nome: perfil.mapaMaisDerrotas }
+                            : null,
+                    },
+                }));
+                setPlayers(jogadores);
+            } catch (error) {
+                console.error("Failed to fetch players:", error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    // Calcular métricas
+    const metrics = useMemo(() => {
+        const totalPlayers = players.length;
+        const avgKd =
+            players.length > 0
+                ? players.reduce((sum, p) => sum + (p.dados?.kd || 0), 0) /
+                  players.length
+                : 0;
+        const avgWinRate =
+            players.length > 0
+                ? players.reduce((sum, p) => sum + (p.dados?.winrate || 0), 0) /
+                  players.length
+                : 0;
+        const totalHours =
+            players.reduce((sum, p) => sum + (p.dados?.horasJogadas || 0), 0) /
+            1000;
+
+        return {
+            totalPlayers,
+            avgKd: avgKd.toFixed(2),
+            avgWinRate: avgWinRate.toFixed(1),
+            totalHours: totalHours.toFixed(1),
+        };
+    }, [players]);
+
+    // Dados para o gráfico de performance (mock data por enquanto)
+    const performanceData = [
+        { month: "Jan", value: 1200 },
+        { month: "Fev", value: 1900 },
+        { month: "Mar", value: 1500 },
+        { month: "Abr", value: 2100 },
+        { month: "Mai", value: 1800 },
+        { month: "Jun", value: 2400 },
+        { month: "Jul", value: 2200 },
     ];
 
     return (
-        <div className=" bg-background">
-            <main className="container mx-auto px-4 py-4">
-                {/* Hero Section */}
-                <div className="text-center mb-12">
-                    <h2 className="text-4xl font-bold mb-4 text-balance">
-                        Central de Comando Tático
-                    </h2>
-                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-                        Acesse todas as funcionalidades da plataforma através
-                        dos módulos organizados abaixo. Cada seção oferece
-                        ferramentas especializadas para análise e gerenciamento.
+        <div className="bg-background min-h-screen">
+            <main className="container mx-auto px-4 py-6 md:py-8">
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                        Dashboard Overview
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Monitore seus jogadores e performance do sistema
                     </p>
                 </div>
 
-                {/* Navigation Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {navigationCards.map((card, index) => (
-                        <Link key={index} href={card.href} className="group">
-                            <Card
-                                key={index}
-                                className="bg-card border-border hover:shadow-lg transition-all duration-300 group cursor-pointer"
-                            >
-                                <CardHeader className="pb-4">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div
-                                            className={`p-3 rounded-lg ${card.bgColor}`}
-                                        >
-                                            <card.icon
-                                                className={`h-8 w-8 ${card.color}`}
-                                            />
-                                        </div>
-                                        <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                                    </div>
-                                    <CardTitle className="text-xl mb-2">
-                                        {card.title}
-                                    </CardTitle>
-                                    <CardDescription className="text-pretty">
-                                        {card.description}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-muted-foreground">
-                                            {card.stats}
-                                        </span>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                                            asChild
-                                        ></Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
+                {/* Action Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 items-stretch">
+                    <ActionCard
+                        title="Jogadores"
+                        description="Gerencie perfis e estatísticas dos jogadores"
+                        icon={Users}
+                        href="/Jogadores"
+                        color="green"
+                    />
+                    <ActionCard
+                        title="Operadores"
+                        description="Explore informações dos operadores"
+                        icon={Shield}
+                        href="/Operadores"
+                        color="blue"
+                    />
+                    <ActionCard
+                        title="Mapas"
+                        description="Visualize todos os mapas do jogo"
+                        icon={Map}
+                        href="/Mapas"
+                        color="purple"
+                    />
+                    <ActionCard
+                        title="Dashboard"
+                        description="Visualize gráficos e análises detalhadas"
+                        icon={BarChart3}
+                        href="/Dashboard"
+                        color="orange"
+                    />
+                </div>
+
+                {/* Metrics Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <MetricCard
+                        title="Total de Jogadores"
+                        value={metrics.totalPlayers}
+                        change={{ value: 12, isPositive: true }}
+                        icon={<Users className="h-4 w-4" />}
+                    />
+                    <MetricCard
+                        title="K/D Médio"
+                        value={metrics.avgKd}
+                        change={{ value: 0.3, isPositive: true }}
+                        icon={<TrendingUp className="h-4 w-4" />}
+                    />
+                    <MetricCard
+                        title="Win Rate Médio"
+                        value={`${metrics.avgWinRate}%`}
+                        change={{ value: 2.1, isPositive: true }}
+                        icon={<Activity className="h-4 w-4" />}
+                    />
+                    <MetricCard
+                        title="Horas Totais"
+                        value={`${metrics.totalHours}K`}
+                        change={{ value: 8.2, isPositive: true }}
+                        icon={<Clock className="h-4 w-4" />}
+                    />
+                </div>
+
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
+                    {/* Performance Chart - Takes 2 columns */}
+                    <div className="lg:col-span-2 flex">
+                        <div className="w-full flex flex-col">
+                            <PerformanceChart data={performanceData} />
+                        </div>
+                    </div>
+
+                    {/* Recent Activity - Takes 1 column */}
+                    <div className="flex">
+                        <div className="w-full flex flex-col">
+                            <RecentActivity />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Recent Players Table */}
+                <div className="mb-8">
+                    <RecentPlayersTable players={players} />
                 </div>
             </main>
         </div>

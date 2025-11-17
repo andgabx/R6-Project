@@ -35,7 +35,7 @@ export function ThemeSwitcher() {
   }
 
   return (
-    <Button variant="outline" size="icon" onClick={toggleTheme} className="h-9 w-9 bg-transparent">
+    <Button variant="outline" size="icon" onClick={toggleTheme} className="h-12 w-12">
       {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       <span className="sr-only">Toggle theme</span>
     </Button>

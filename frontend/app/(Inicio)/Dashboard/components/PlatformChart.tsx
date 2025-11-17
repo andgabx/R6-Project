@@ -38,24 +38,23 @@ export const PlatformChart = ({ players }: PlatformChartProps) => {
     }, [players]);
 
     const platformChartConfig = useMemo(() => {
-        // ... (lógica de config inalterada)
         const config: ChartConfig = {};
         platformChartData.forEach((item, index) => {
+            const chartIndex = (index % 5) + 1; // Cicla entre chart-1 a chart-5
             config[item.name] = {
                 label: item.name,
-                color: `hsl(var(--chart-${index + 1}))`,
+                color: `var(--chart-${chartIndex})`,
             };
         });
         return config;
     }, [platformChartData]);
 
-    // 👇 INÍCIO DA MUDANÇA: ChartContainer agora envolve o Card
     return (
         <ChartContainer
             config={platformChartConfig}
-            className="w-full" // Adicione classes de largura/layout aqui, se necessário
+            className="w-full h-[400px]"
         >
-            <Card className="flex flex-col">
+            <Card className="flex flex-col h-full">
                 <CardHeader className="items-center pb-0">
                     <CardTitle>Jogadores por Plataforma</CardTitle>
                     <CardDescription>
@@ -63,11 +62,7 @@ export const PlatformChart = ({ players }: PlatformChartProps) => {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-1 items-center justify-center pb-0">
-                    {/* 👇 MUDANÇA: Adicionado um <div> para o estilo 
-                      que antes estava no ChartContainer 
-                    */}
                     <div className="mx-auto aspect-square w-full max-w-[250px]">
-                        {/* 👇 INÍCIO DA MUDANÇA: Adicione o ResponsiveContainer */}
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <ChartTooltip
@@ -87,7 +82,6 @@ export const PlatformChart = ({ players }: PlatformChartProps) => {
                                 </Pie>
                             </PieChart>
                         </ResponsiveContainer>
-                        {/* 👆 FIM DA MUDANÇA */}
                     </div>
                 </CardContent>
                 <CardFooter className="flex-col gap-2 text-sm">

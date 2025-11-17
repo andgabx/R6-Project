@@ -30,7 +30,7 @@ const DashboardPage = () => {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
                 <PlatformChart players={players} />
                 <FavoriteMapChart players={players} />
-                <RankChart players={players} />
+                <RankChart />
                 <KdHorasChart players={players} />
                 <WlKdChart players={players} />
             </div>

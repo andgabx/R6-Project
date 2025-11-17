@@ -67,3 +67,33 @@ export interface Jogador {
   operadoresAtaque: JogadorOperador[];
   operadoresDefesa: JogadorOperador[];
 }
+
+// Estrutura simplificada retornada pelo endpoint de perfis
+export interface JogadorPerfil {
+  idJogador: number;
+  nickname: string;
+  nivel: number;
+  rankJogador: string;
+  winrateGeral: number;
+  kd: number;
+  horasJogadas: number;
+  plataforma: string;
+  mapaFavorito: string;
+  mapaMaisVitorias: string;
+  mapaMaisDerrotas: string;
+}
+
+// Estrutura para agrupamento por rank
+export interface RankGroup {
+  chave: string;
+  contagem: number;
+}
+
+// Estrutura para logs de alteração de rank
+export interface RankLog {
+  logId: number;
+  dadosId: number;
+  rankAntigo: string;
+  rankNovo: string;
+  dataAlteracao: string;
+}

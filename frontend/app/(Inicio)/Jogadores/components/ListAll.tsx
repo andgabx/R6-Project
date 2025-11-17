@@ -13,6 +13,8 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Trash2, Edit } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
     Dialog,
     DialogContent,
@@ -22,7 +24,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { jogadorService } from "@/services/JogadorService";
-import { Jogador } from "@/types/jogador";
+import { Jogador, JogadorRequest } from "@/types/jogador";
+import { Search } from "lucide-react";
+import { toast } from "sonner";
 
 interface ListAllProps {
     jogadores: Jogador[];
@@ -31,7 +35,6 @@ interface ListAllProps {
     setLoading: (loading: boolean) => void;
     error: string;
     setError: (error: string) => void;
-    handleError: (error: unknown, message: string) => void;
 }
 
 export default function ListAll({
@@ -39,26 +42,229 @@ export default function ListAll({
     setJogadores,
     setLoading,
     setError,
-    handleError,
 }: ListAllProps) {
-    const [selectedJogador, setSelectedJogador] = useState<Jogador | null>(null);
+    const [selectedJogador, setSelectedJogador] = useState<Jogador | null>(
+        null
+    );
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [localSearchId, setLocalSearchId] = useState<number>(0);
+    const [searchedJogador, setSearchedJogador] = useState<Jogador | null>(
+        null
+    );
+    const [minKd, setMinKd] = useState<number>(0);
+    const [minWinRate, setMinWinRate] = useState<number>(0);
+    const [minLevel, setMinLevel] = useState<number>(0);
+    const [activeSearch, setActiveSearch] = useState<
+        "id" | "kd" | "winrate" | "level" | null
+    >(null);
 
-    const carregarTodosJogadores = async () => {
+    const carregarTodosJogadores = async (showToast = false) => {
         try {
             setLoading(true);
             setError("");
-            const data = await jogadorService.listAll();
-            setJogadores(data);
+            const perfis = await jogadorService.listPerfis();
+            // Converter JogadorPerfil[] para Jogador[] para manter compatibilidade
+            const jogadoresConvertidos: Jogador[] = perfis.map((perfil) => ({
+                idJogador: perfil.idJogador,
+                nickname: perfil.nickname,
+                dados: {
+                    id: 0,
+                    nivel: perfil.nivel,
+                    winrate: perfil.winrateGeral,
+                    rankJogador: perfil.rankJogador,
+                    headshot: 0,
+                    kd: perfil.kd,
+                    plataforma: perfil.plataforma,
+                    horasJogadas: perfil.horasJogadas,
+                    mainRole: "",
+                    preferenciaJogo: "",
+                    mapaFavorito: perfil.mapaFavorito
+                        ? { idMapa: 0, nome: perfil.mapaFavorito }
+                        : null,
+                    mapaMaisVitorias: perfil.mapaMaisVitorias
+                        ? { idMapa: 0, nome: perfil.mapaMaisVitorias }
+                        : null,
+                    mapaMaisDerrotas: perfil.mapaMaisDerrotas
+                        ? { idMapa: 0, nome: perfil.mapaMaisDerrotas }
+                        : null,
+                },
+                operadoresAtaque: [],
+                operadoresDefesa: [],
+            }));
+            setJogadores(jogadoresConvertidos);
+            setSearchedJogador(null);
+            setActiveSearch(null);
+            if (showToast) {
+                toast.success("Lista de jogadores carregada com sucesso!", {
+                    position: "bottom-center",
+                });
+            }
         } catch (error) {
-            handleError(error, "Erro ao carregar jogadores");
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao carregar jogadores: ${errorMessage}`, {
+                position: "bottom-center",
+            });
         } finally {
             setLoading(false);
         }
     };
 
+    const buscarJogadorPorId = async () => {
+        if (!localSearchId) {
+            toast.error("Por favor, insira um ID válido", {
+                position: "bottom-center",
+            });
+            return;
+        }
+        try {
+            setLoading(true);
+            setError("");
+            setSearchedJogador(null);
+            setActiveSearch("id");
+            const data = await jogadorService.findById(localSearchId);
+            if (data) {
+                setSearchedJogador(data);
+                // Filtra a lista para mostrar apenas o jogador encontrado
+                setJogadores([data]);
+                toast.success(`Jogador encontrado: ${data.nickname}`, {
+                    position: "bottom-center",
+                });
+            } else {
+                toast.error(
+                    `Nenhum jogador foi encontrado com o ID ${localSearchId}`,
+                    {
+                        position: "bottom-center",
+                    }
+                );
+            }
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(
+                `Não foi possível encontrar o jogador com ID ${localSearchId}: ${errorMessage}`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const buscarPorKdMinimo = async () => {
+        if (!minKd || minKd <= 0) {
+            toast.error("Por favor, insira um K/D mínimo válido", {
+                position: "bottom-center",
+            });
+            return;
+        }
+        try {
+            setLoading(true);
+            setError("");
+            setActiveSearch("kd");
+            const data = await jogadorService.listByMinKd(minKd);
+            setJogadores(data);
+            toast.success(
+                `Encontrados ${data.length} jogador(es) com K/D mínimo de ${minKd}`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(
+                `Erro ao buscar jogadores por K/D mínimo: ${errorMessage}`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const buscarPorWinRateMinimo = async () => {
+        if (!minWinRate || minWinRate <= 0) {
+            toast.error("Por favor, insira um Win Rate mínimo válido", {
+                position: "bottom-center",
+            });
+            return;
+        }
+        try {
+            setLoading(true);
+            setError("");
+            setActiveSearch("winrate");
+            const data = await jogadorService.listByMinWinRate(minWinRate);
+            setJogadores(data);
+            toast.success(
+                `Encontrados ${data.length} jogador(es) com Win Rate mínimo de ${minWinRate}%`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(
+                `Erro ao buscar jogadores por Win Rate mínimo: ${errorMessage}`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const buscarPorNivelMinimo = async () => {
+        if (!minLevel || minLevel <= 0) {
+            toast.error("Por favor, insira um nível mínimo válido", {
+                position: "bottom-center",
+            });
+            return;
+        }
+        try {
+            setLoading(true);
+            setError("");
+            setActiveSearch("level");
+            const data = await jogadorService.listByMinLevel(minLevel);
+            setJogadores(data);
+            toast.success(
+                `Encontrados ${data.length} jogador(es) com nível mínimo de ${minLevel}`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(
+                `Erro ao buscar jogadores por nível mínimo: ${errorMessage}`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const limparBusca = () => {
+        setLocalSearchId(0);
+        setSearchedJogador(null);
+        setMinKd(0);
+        setMinWinRate(0);
+        setMinLevel(0);
+        setActiveSearch(null);
+        carregarTodosJogadores();
+    };
+
     useEffect(() => {
         carregarTodosJogadores();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleDeleteConfirm = async () => {
@@ -68,10 +274,19 @@ export default function ListAll({
             setError("");
             await jogadorService.delete(selectedJogador.idJogador);
             setIsDeleteModalOpen(false);
-            alert("Jogador deletado com sucesso!");
+            toast.success(
+                `Jogador "${selectedJogador.nickname}" deletado com sucesso!`,
+                {
+                    position: "bottom-center",
+                }
+            );
             carregarTodosJogadores(); // Recarrega a lista
         } catch (error) {
-            handleError(error, "Erro ao deletar jogador");
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao deletar jogador: ${errorMessage}`, {
+                position: "bottom-center",
+            });
         } finally {
             setLoading(false);
         }
@@ -82,11 +297,295 @@ export default function ListAll({
         setIsDeleteModalOpen(true);
     };
 
-    // Placeholder para a função de editar
     const handleEdit = (jogador: Jogador) => {
-        alert(`Implementar lógica de edição para: ${jogador.nickname}`);
-        
-        // Ex: router.push(`/Jogadores/${jogador.idJogador}/edit`);
+        setSelectedJogador(jogador);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdateSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedJogador) return;
+
+        try {
+            setLoading(true);
+            setError("");
+
+            const updateData: JogadorRequest = {
+                nickname: selectedJogador.nickname,
+                dados: {
+                    nivel: selectedJogador.dados?.nivel || 1,
+                    winrate: selectedJogador.dados?.winrate || 50.0,
+                    rankJogador: selectedJogador.dados?.rankJogador || "Bronze",
+                    headshot: selectedJogador.dados?.headshot || 0.0,
+                    kd: selectedJogador.dados?.kd || 1.0,
+                    plataforma: selectedJogador.dados?.plataforma || "PC",
+                    horasJogadas: selectedJogador.dados?.horasJogadas || 0,
+                    mainRole: selectedJogador.dados?.mainRole || "Suporte",
+                    preferenciaJogo:
+                        selectedJogador.dados?.preferenciaJogo || "Casual",
+                    mapaFavoritoId:
+                        selectedJogador.dados?.mapaFavorito?.idMapa || null,
+                    mapaMaisVitoriasId:
+                        selectedJogador.dados?.mapaMaisVitorias?.idMapa || null,
+                    mapaMaisDerrotasId:
+                        selectedJogador.dados?.mapaMaisDerrotas?.idMapa || null,
+                },
+                operadoresAtaque: selectedJogador.operadoresAtaque.map(
+                    (op) => ({
+                        operadorId: op.operador?.idOperador || 0,
+                        winrate: op.winrate || 0,
+                    })
+                ),
+                operadoresDefesa: selectedJogador.operadoresDefesa.map(
+                    (op) => ({
+                        operadorId: op.operador?.idOperador || 0,
+                        winrate: op.winrate || 0,
+                    })
+                ),
+            };
+
+            await jogadorService.update(selectedJogador.idJogador, updateData);
+            setIsEditModalOpen(false);
+            toast.success(
+                `Jogador "${selectedJogador.nickname}" atualizado com sucesso!`
+            );
+            carregarTodosJogadores();
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao atualizar jogador: ${errorMessage}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEditInputChange = (
+        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+        section?: string,
+        index?: number,
+        field?: string
+    ) => {
+        const { name, value } = event.target;
+        if (!selectedJogador) return;
+
+        if (section === "dados") {
+            setSelectedJogador((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          dados: prev.dados
+                              ? {
+                                    ...prev.dados,
+                                    [name]:
+                                        name === "nivel" ||
+                                        name === "winrate" ||
+                                        name === "headshot" ||
+                                        name === "kd" ||
+                                        name === "horasJogadas"
+                                            ? Number(value)
+                                            : value,
+                                }
+                              : prev.dados,
+                      }
+                    : prev
+            );
+        } else if (
+            section === "operadoresAtaque" &&
+            typeof index === "number" &&
+            field
+        ) {
+            setSelectedJogador((prev) => {
+                if (!prev) return prev;
+                const newOperadoresAtaque = [...prev.operadoresAtaque];
+                newOperadoresAtaque[index] = {
+                    ...newOperadoresAtaque[index],
+                    [field]:
+                        field === "operadorId" || field === "winrate"
+                            ? Number(value)
+                            : value,
+                };
+                return {
+                    ...prev,
+                    operadoresAtaque: newOperadoresAtaque,
+                };
+            });
+        } else if (
+            section === "operadoresDefesa" &&
+            typeof index === "number" &&
+            field
+        ) {
+            setSelectedJogador((prev) => {
+                if (!prev) return prev;
+                const newOperadoresDefesa = [...prev.operadoresDefesa];
+                newOperadoresDefesa[index] = {
+                    ...newOperadoresDefesa[index],
+                    [field]:
+                        field === "operadorId" || field === "winrate"
+                            ? Number(value)
+                            : value,
+                };
+                return {
+                    ...prev,
+                    operadoresDefesa: newOperadoresDefesa,
+                };
+            });
+        } else {
+            setSelectedJogador((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          [name]: value,
+                      }
+                    : prev
+            );
+        }
+    };
+
+    const jogadorEditForm = () => {
+        if (!selectedJogador) return null;
+        return (
+            <form
+                onSubmit={handleUpdateSubmit}
+                className="space-y-4"
+            >
+                <div>
+                    <Label htmlFor="nickname">Nickname</Label>
+                    <Input
+                        id="nickname"
+                        name="nickname"
+                        value={selectedJogador.nickname}
+                        onChange={handleEditInputChange}
+                        required
+                    />
+                </div>
+
+                <fieldset className="border p-4 rounded">
+                    <legend className="font-semibold">Dados</legend>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label htmlFor="nivel">Nível</Label>
+                            <Input
+                                id="nivel"
+                                name="nivel"
+                                type="number"
+                                value={selectedJogador.dados?.nivel || 0}
+                                onChange={(e) =>
+                                    handleEditInputChange(e, "dados")
+                                }
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="winrate">Winrate</Label>
+                            <Input
+                                id="winrate"
+                                name="winrate"
+                                type="number"
+                                step="0.01"
+                                value={selectedJogador.dados?.winrate || 0}
+                                onChange={(e) =>
+                                    handleEditInputChange(e, "dados")
+                                }
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="rankJogador">Rank Jogador</Label>
+                            <Input
+                                id="rankJogador"
+                                name="rankJogador"
+                                value={selectedJogador.dados?.rankJogador || ""}
+                                onChange={(e) =>
+                                    handleEditInputChange(e, "dados")
+                                }
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="headshot">Headshot</Label>
+                            <Input
+                                id="headshot"
+                                name="headshot"
+                                type="number"
+                                step="0.01"
+                                value={selectedJogador.dados?.headshot || 0}
+                                onChange={(e) =>
+                                    handleEditInputChange(e, "dados")
+                                }
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="kd">K/D</Label>
+                            <Input
+                                id="kd"
+                                name="kd"
+                                type="number"
+                                step="0.01"
+                                value={selectedJogador.dados?.kd || 0}
+                                onChange={(e) =>
+                                    handleEditInputChange(e, "dados")
+                                }
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="plataforma">Plataforma</Label>
+                            <Input
+                                id="plataforma"
+                                name="plataforma"
+                                value={selectedJogador.dados?.plataforma || ""}
+                                onChange={(e) =>
+                                    handleEditInputChange(e, "dados")
+                                }
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="horasJogadas">Horas Jogadas</Label>
+                            <Input
+                                id="horasJogadas"
+                                name="horasJogadas"
+                                type="number"
+                                value={selectedJogador.dados?.horasJogadas || 0}
+                                onChange={(e) =>
+                                    handleEditInputChange(e, "dados")
+                                }
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="mainRole">Main Role</Label>
+                            <Input
+                                id="mainRole"
+                                name="mainRole"
+                                value={selectedJogador.dados?.mainRole || ""}
+                                onChange={(e) =>
+                                    handleEditInputChange(e, "dados")
+                                }
+                                required
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="preferenciaJogo">
+                                Preferência de Jogo
+                            </Label>
+                            <Input
+                                id="preferenciaJogo"
+                                name="preferenciaJogo"
+                                value={
+                                    selectedJogador.dados?.preferenciaJogo || ""
+                                }
+                                onChange={(e) =>
+                                    handleEditInputChange(e, "dados")
+                                }
+                                required
+                            />
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        );
     };
 
     const renderJogadorList = (actions?: {
@@ -102,12 +601,18 @@ export default function ListAll({
                     Nenhum jogador encontrado.
                 </p>
             ) : (
-                <ScrollArea className="h-[60vh] w-full">
+                <ScrollArea className="h-[55vh] w-full">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {jogadores.map((j) => (
-                            <Card key={j.idJogador} className="flex flex-col justify-between h-full">
+                            <Card
+                                key={j.idJogador}
+                                className="flex flex-col justify-between h-full hover:bg-primary/5 transition-all duration-200"
+                            >
                                 {/* O Link agora envolve apenas a parte clicável (Header e Content) */}
-                                <Link href={`/Jogadores/${j.idJogador}`} passHref>
+                                <Link
+                                    href={`/Jogadores/${j.idJogador}`}
+                                    passHref
+                                >
                                     <div className="cursor-pointer hover:border-primary transition-all duration-200">
                                         <CardHeader>
                                             <CardTitle className="flex items-center justify-between">
@@ -173,7 +678,9 @@ export default function ListAll({
                                             <Button
                                                 variant="outline"
                                                 size="icon"
-                                                onClick={() => actions.onEdit?.(j)}
+                                                onClick={() =>
+                                                    actions.onEdit?.(j)
+                                                }
                                             >
                                                 <Edit className="h-4 w-4" />
                                             </Button>
@@ -182,7 +689,9 @@ export default function ListAll({
                                             <Button
                                                 variant="destructive"
                                                 size="icon"
-                                                onClick={() => actions.onDelete?.(j)}
+                                                onClick={() =>
+                                                    actions.onDelete?.(j)
+                                                }
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
@@ -199,11 +708,183 @@ export default function ListAll({
 
     return (
         <div>
-            <h2 className="text-2xl font-bold mb-4">Todos os Jogadores</h2>
-            <Button onClick={carregarTodosJogadores}>Recarregar Lista</Button>
-            
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                <h2 className="text-2xl font-bold">Todos os Jogadores</h2>
+                <Button
+                    onClick={() => carregarTodosJogadores(true)}
+                    variant="outline"
+                >
+                    Recarregar
+                </Button>
+            </div>
+
+            {/* Buscas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {/* Busca por ID */}
+                <div className="flex flex-col gap-2">
+                    <Input
+                        type="number"
+                        placeholder="Buscar por ID"
+                        value={localSearchId || ""}
+                        onChange={(e) =>
+                            setLocalSearchId(parseInt(e.target.value) || 0)
+                        }
+                    />
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={buscarJogadorPorId}
+                            variant="outline"
+                            className="flex-1"
+                        >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
+                        {activeSearch === "id" && (
+                            <Button onClick={limparBusca} variant="ghost">
+                                Limpar
+                            </Button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Busca por K/D Mínimo */}
+                <div className="flex flex-col gap-2">
+                    <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="K/D mínimo"
+                        value={minKd || ""}
+                        onChange={(e) =>
+                            setMinKd(parseFloat(e.target.value) || 0)
+                        }
+                    />
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={buscarPorKdMinimo}
+                            variant="outline"
+                            className="flex-1"
+                        >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
+                        {activeSearch === "kd" && (
+                            <Button onClick={limparBusca} variant="ghost">
+                                Limpar
+                            </Button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Busca por Win Rate Mínimo */}
+                <div className="flex flex-col gap-2">
+                    <Input
+                        type="number"
+                        step="0.1"
+                        placeholder="Win Rate mínimo (%)"
+                        value={minWinRate || ""}
+                        onChange={(e) =>
+                            setMinWinRate(parseFloat(e.target.value) || 0)
+                        }
+                    />
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={buscarPorWinRateMinimo}
+                            variant="outline"
+                            className="flex-1"
+                        >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
+                        {activeSearch === "winrate" && (
+                            <Button onClick={limparBusca} variant="ghost">
+                                Limpar
+                            </Button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Busca por Nível Mínimo */}
+                <div className="flex flex-col gap-2">
+                    <Input
+                        type="number"
+                        placeholder="Nível mínimo"
+                        value={minLevel || ""}
+                        onChange={(e) =>
+                            setMinLevel(parseInt(e.target.value) || 0)
+                        }
+                    />
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={buscarPorNivelMinimo}
+                            variant="outline"
+                            className="flex-1"
+                        >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
+                        {activeSearch === "level" && (
+                            <Button onClick={limparBusca} variant="ghost">
+                                Limpar
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Indicadores de busca ativa */}
+            {activeSearch === "id" && searchedJogador && (
+                <Card className="mb-6 bg-primary/5 border-primary/20">
+                    <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">
+                            Mostrando resultado da busca por ID:{" "}
+                            <strong className="text-primary">
+                                {localSearchId}
+                            </strong>
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
+
+            {activeSearch === "kd" && (
+                <Card className="mb-6 bg-primary/5 border-primary/20">
+                    <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">
+                            Mostrando jogadores com K/D mínimo de:{" "}
+                            <strong className="text-primary">{minKd}</strong>
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
+
+            {activeSearch === "winrate" && (
+                <Card className="mb-6 bg-primary/5 border-primary/20">
+                    <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">
+                            Mostrando jogadores com Win Rate mínimo de:{" "}
+                            <strong className="text-primary">
+                                {minWinRate}%
+                            </strong>
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
+
+            {activeSearch === "level" && (
+                <Card className="mb-6 bg-primary/5 border-primary/20">
+                    <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">
+                            Mostrando jogadores com nível mínimo de:{" "}
+                            <strong className="text-primary">{minLevel}</strong>
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
+
             <div className="mt-6">
-                {renderJogadorList({ onEdit: handleEdit, onDelete: openDeleteModal })}
+                {renderJogadorList({
+                    onEdit: handleEdit,
+                    onDelete: openDeleteModal,
+                })}
             </div>
 
             {/* O Dialog de confirmação, copiado do Delete.tsx */}
@@ -236,6 +917,44 @@ export default function ListAll({
                             Deletar
                         </Button>
                     </DialogFooterComponent>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog de Edição */}
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="max-w-[95vw] w-full max-h-[95vh] h-full flex flex-col p-0 gap-0">
+                    <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b">
+                        <DialogTitle>
+                            Editar Jogador: {selectedJogador?.nickname}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Faça as alterações necessárias e clique em salvar.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-y-auto px-6 py-4">
+                        {jogadorEditForm()}
+                    </div>
+                    <div className="flex justify-end gap-2 px-6 py-4 border-t flex-shrink-0">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsEditModalOpen(false)}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (selectedJogador) {
+                                    const form = document.querySelector('form') as HTMLFormElement;
+                                    if (form) {
+                                        form.requestSubmit();
+                                    }
+                                }
+                            }}
+                        >
+                            Salvar Alterações
+                        </Button>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

@@ -40,13 +40,13 @@ export const FavoriteMapChart = ({ players }: FavoriteMapChartProps) => {
         }, [] as { name: string; value: number }[]);
     }, [players]);
 
-    // ... (lógica de config 'favoriteMapChartConfig' inalterada)
     const favoriteMapChartConfig = useMemo(() => {
         const config: ChartConfig = {};
         favoriteMapChartData.forEach((item, index) => {
+            const chartIndex = (index % 5) + 1; // Cicla entre chart-1 a chart-5
             config[item.name] = {
                 label: item.name,
-                color: `hsl(var(--chart-${index + 1}))`,
+                color: `var(--chart-${chartIndex})`,
             };
         });
         return config;
@@ -55,9 +55,9 @@ export const FavoriteMapChart = ({ players }: FavoriteMapChartProps) => {
     return (
         <ChartContainer
             config={favoriteMapChartConfig}
-            className="w-full"
+            className="w-full h-[400px]"
         >
-            <Card className="flex flex-col">
+            <Card className="flex flex-col h-full">
                 <CardHeader className="items-center pb-0">
                     <CardTitle>Mapas Favoritos</CardTitle>
                     <CardDescription>
@@ -66,8 +66,6 @@ export const FavoriteMapChart = ({ players }: FavoriteMapChartProps) => {
                 </CardHeader>
                 <CardContent className="flex flex-1 items-center justify-center pb-0">
                     <div className="mx-auto aspect-square w-full max-w-[250px]">
-
-                        {/* 👇 2. Envolva o PieChart com o ResponsiveContainer */}
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <ChartTooltip
@@ -88,8 +86,6 @@ export const FavoriteMapChart = ({ players }: FavoriteMapChartProps) => {
                                 </Pie>
                             </PieChart>
                         </ResponsiveContainer>
-                        {/* 👆 Fim da correção */}
-
                     </div>
                 </CardContent>
                 <CardFooter className="flex-col gap-2 text-sm">
