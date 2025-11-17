@@ -1,6 +1,5 @@
 // types/operador.ts
 export interface Habilidades {
-    gadgetName: string | null;
     gadgetAbility: string;
 }
 

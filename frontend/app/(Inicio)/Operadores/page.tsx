@@ -246,10 +246,6 @@ export default function OperadoresPage() {
                                 </h3>
                             </div>
                             <div className="pl-7">
-                                <p className="text-sm font-medium text-muted-foreground mb-1">
-                                    {selectedOperador?.habilidades.gadgetName ||
-                                        "Habilidade"}
-                                </p>
                                 <p className="text-sm text-muted-foreground leading-relaxed">
                                     {
                                         selectedOperador?.habilidades
