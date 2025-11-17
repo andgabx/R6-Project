@@ -127,23 +127,37 @@ INSERT INTO Time (ID_Time, Nome) VALUES
 -- 2. Inserir Tabelas Dependentes (Filhos)
 
 -- Inserir Dados (Baseado nos jogadores do V2 antigo, com estatísticas genéricas)
-INSERT INTO Dados (Dados_PK_INT, Nivel, RankJogador, Winrate, KD, Plataforma, Horas_jogadas) VALUES
-                                                                                                 (1, 150, 'Diamante', 1.5, 1.2, 'PC', 500), (2, 89, 'Ouro II', 1.0, 0.9, 'PC', 150),
-                                                                                                 (3, 210, 'Platina I', 1.3, 1.1, 'PC', 700), (4, 120, 'Ouro III', 0.9, 0.8, 'Console', 300),
-                                                                                                 (5, 300, 'Diamante', 1.6, 1.4, 'PC', 1000), (6, 50, 'Cobre V', 0.6, 0.5, 'PC', 50),
-                                                                                                 (7, 170, 'Prata I', 1.0, 1.0, 'Console', 400), (8, 220, 'Platina II', 1.2, 1.1, 'PC', 650),
-                                                                                                 (9, 130, 'Ouro I', 1.1, 1.0, 'PC', 350), (10, 400, 'Campeão', 2.0, 1.8, 'PC', 1500),
-                                                                                                 (11, 110, 'Prata III', 0.9, 0.9, 'Console', 250), (12, 90, 'Bronze II', 0.8, 0.7, 'PC', 100),
-                                                                                                 (13, 250, 'Platina III', 1.2, 1.1, 'PC', 800), (14, 140, 'Ouro II', 1.0, 1.0, 'PC', 300),
-                                                                                                 (15, 70, 'Prata V', 0.7, 0.8, 'Console', 90), (16, 180, 'Ouro I', 1.1, 1.1, 'PC', 550),
-                                                                                                 (17, 190, 'Platina II', 1.3, 1.2, 'PC', 600), (18, 60, 'Bronze I', 0.8, 0.8, 'Console', 70),
-                                                                                                 (19, 230, 'Diamante', 1.5, 1.3, 'PC', 750), (20, 270, 'Platina I', 1.4, 1.2, 'PC', 900),
-                                                                                                 (21, 10, 'Cobre V', 0.5, 0.5, 'PC', 10), (22, 160, 'Ouro III', 0.9, 1.0, 'Console', 450),
-                                                                                                 (23, 80, 'Prata II', 0.9, 0.9, 'PC', 120), (24, 310, 'Campeão', 1.8, 1.6, 'PC', 1200),
-                                                                                                 (25, 100, 'Prata IV', 0.8, 0.8, 'Console', 200), (26, 200, 'Platina III', 1.2, 1.1, 'PC', 600),
-                                                                                                 (27, 125, 'Ouro II', 1.0, 1.0, 'PC', 300), (28, 240, 'Platina I', 1.3, 1.2, 'PC', 800),
-                                                                                                 (29, 350, 'Campeão', 1.9, 1.7, 'PC', 1400), (30, 5, 'Cobre V', 0.4, 0.4, 'Console', 5);
-
+INSERT INTO Dados (Dados_PK_INT, Nivel, RankJogador, Winrate, KD, Headshot, Plataforma, Horas_jogadas) VALUES
+(1, 150, 'Diamante', 1.5, 1.2, 0.45, 'PC', 500),
+(2, 89, 'Ouro II', 1.0, 0.9, 0.30, 'PC', 150),
+(3, 210, 'Platina I', 1.3, 1.1, 0.55, 'PC', 700),
+(4, 120, 'Ouro III', 0.9, 0.8, 0.25, 'Console', 300),
+(5, 300, 'Diamante', 1.6, 1.4, 0.60, 'PC', 1000),
+(6, 50, 'Cobre V', 0.6, 0.5, 0.15, 'PC', 50),
+(7, 170, 'Prata I', 1.0, 1.0, 0.33, 'Console', 400),
+(8, 220, 'Platina II', 1.2, 1.1, 0.42, 'PC', 650),
+(9, 130, 'Ouro I', 1.1, 1.0, 0.38, 'PC', 350),
+(10, 400, 'Campeão', 2.0, 1.8, 0.75, 'PC', 1500),
+(11, 110, 'Prata III', 0.9, 0.9, 0.28, 'Console', 250),
+(12, 90, 'Bronze II', 0.8, 0.7, 0.22, 'PC', 100),
+(13, 250, 'Platina III', 1.2, 1.1, 0.40, 'PC', 800),
+(14, 140, 'Ouro II', 1.0, 1.0, 0.35, 'PC', 300),
+(15, 70, 'Prata V', 0.7, 0.8, 0.20, 'Console', 90),
+(16, 180, 'Ouro I', 1.1, 1.1, 0.39, 'PC', 550),
+(17, 190, 'Platina II', 1.3, 1.2, 0.48, 'PC', 600),
+(18, 60, 'Bronze I', 0.8, 0.8, 0.26, 'Console', 70),
+(19, 230, 'Diamante', 1.5, 1.3, 0.52, 'PC', 750),
+(20, 270, 'Platina I', 1.4, 1.2, 0.50, 'PC', 900),
+(21, 10, 'Cobre V', 0.5, 0.5, 0.10, 'PC', 10),
+(22, 160, 'Ouro III', 0.9, 1.0, 0.31, 'Console', 450),
+(23, 80, 'Prata II', 0.9, 0.9, 0.29, 'PC', 120),
+(24, 310, 'Campeão', 1.8, 1.6, 0.68, 'PC', 1200),
+(25, 100, 'Prata IV', 0.8, 0.8, 0.27, 'Console', 200),
+(26, 200, 'Platina III', 1.2, 1.1, 0.41, 'PC', 600),
+(27, 125, 'Ouro II', 1.0, 1.0, 0.36, 'PC', 300),
+(28, 240, 'Platina I', 1.3, 1.2, 0.49, 'PC', 800),
+(29, 350, 'Campeão', 1.9, 1.7, 0.70, 'PC', 1400),
+(30, 5, 'Cobre V', 0.4, 0.4, 0.09, 'Console', 5);
 -- Inserir Jogadores (Baseado no V2 antigo, linkando aos Dados 1-30)
 INSERT INTO Jogador (ID_Jogador, Nickname, fk_Dados_Dados_PK_INT) VALUES
                                                                       (1, 'AceKiller', 1), (2, 'BlitzMain', 2), (3, 'CaveiraHunter', 3), (4, 'DocSavior', 4),
