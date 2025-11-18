@@ -1,5 +1,5 @@
 import api from "../lib/api";
-import { Jogador, JogadorRequest, JogadorPerfil, RankGroup, RankLog, MaxKdPlayer, JogadorTime, KdHeadshotScatterData } from "../types/jogador";
+import { Jogador, JogadorRequest, JogadorPerfil, RankGroup, RankLog, MaxKdPlayer, JogadorTime, KdHeadshotScatterData, TimePorMapa, KpiDTO } from "../types/jogador";
 
 export const jogadorService = {
   listAll: async (): Promise<Jogador[]> => {
@@ -51,6 +51,11 @@ export const jogadorService = {
     return response.data;
   },
 
+  getRoleGroups: async (): Promise<RankGroup[]> => {
+    const response = await api.get<RankGroup[]>("/stats/group/by-role");
+    return response.data;
+  },
+
   getRankLogs: async (): Promise<RankLog[]> => {
     const response = await api.get<RankLog[]>("/stats/trigger/rank-logs");
     return response.data;
@@ -68,6 +73,20 @@ export const jogadorService = {
 
   getKdHeadshotScatter: async (): Promise<KdHeadshotScatterData[]> => {
     const response = await api.get<KdHeadshotScatterData[]>("/stats/scatter/kd-vs-headshot");
+    return response.data;
+  },
+
+  recalcularRanks: async (): Promise<void> => {
+    await api.post("/stats/procedure/recalcular-ranks");
+  },
+
+  getTimesPorMapa: async (mapaNome: string): Promise<TimePorMapa[]> => {
+    const response = await api.get<TimePorMapa[]>(`/stats/query/sub-in-times-mapa/${encodeURIComponent(mapaNome)}`);
+    return response.data;
+  },
+
+  getKpis: async (): Promise<KpiDTO> => {
+    const response = await api.get<KpiDTO>("/stats/kpis");
     return response.data;
   }
 };

@@ -115,3 +115,16 @@ export interface KdHeadshotScatterData {
   x: number; // K/D
   y: number; // Headshot % (0-100)
 }
+
+// Estrutura para times que jogaram em um mapa (Subconsulta IN)
+export interface TimePorMapa {
+  nome: string;
+}
+
+// Estrutura para KPIs do Dashboard
+export interface KpiDTO {
+  totalJogadores: number;
+  totalPartidas: number;
+  mediaKd: number;
+  mediaWinrate: number;
+}

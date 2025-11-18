@@ -1,28 +1,28 @@
 import { Partida, PartidaRequest } from "@/types/partida";
 import api from "../lib/api";
 
-export const partidasService = {
-  listarTodas: async (): Promise<Partida[]> => {
-    const response = await api.get<Partida[]>("/partidas");
+export const partidaService = {
+  listAll: async (): Promise<Partida[]> => {
+    const response = await api.get<Partida[]>("/match");
     return response.data;
   },
 
-  buscarPorId: async (id: number): Promise<Partida> => {
-    const response = await api.get<Partida>(`/partidas/${id}`);
+  findById: async (id: number): Promise<Partida> => {
+    const response = await api.get<Partida>(`/match/${id}`);
     return response.data;
   },
 
-  criar: async (partida: PartidaRequest): Promise<Partida> => {
-    const response = await api.post<Partida>("/partidas", partida);
+  create: async (partida: PartidaRequest): Promise<Partida> => {
+    const response = await api.post<Partida>("/match", partida);
     return response.data;
   },
 
-  atualizar: async (id: number, partida: PartidaRequest): Promise<Partida> => {
-    const response = await api.put<Partida>(`/partidas/${id}`, partida);
+  update: async (id: number, partida: PartidaRequest): Promise<Partida> => {
+    const response = await api.put<Partida>(`/match/${id}`, partida);
     return response.data;
   },
 
-  deletar: async (id: number): Promise<void> => {
-    await api.delete(`/partidas/${id}`);
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/match/${id}`);
   },
 };

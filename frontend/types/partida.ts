@@ -1,47 +1,27 @@
+import { Jogador } from "./jogador";
+import { Operador } from "./operador";
+import { Mapa } from "./mapa";
+
+export interface ModoDeJogo {
+  idModoDeJogo: number;
+  nome: string;
+  descricao: string;
+  tipo: string;
+}
+
 export interface Partida {
   idPartida: number;
-  kills: number;
-  deaths: number;
-  vitoria: boolean;
-  dataPartida: string;
-
-  jogador?: {
-    idJogador: number;
-    nickname: string;
-    dadosId: number;
-    nivel: number;
-    winrate: number;
-    rankJogador: string;
-    headshot: number;
-    kd: number;
-  };
-
-  operador?: {
-    idOperador: number;
-    nome: string;
-    funcao: string;
-  };
-
-  mapa?: {
-    idMapa: number;
-    nome: string;
-  };
-
-  modoDeJogo?: {
-    idModo: number;
-    nome: string;
-    descricao: string;
-    tipo: string;
-  };
+  resultado: string;
+  dataHora: string;
+  mapa: Mapa | null;
+  modoDeJogo: ModoDeJogo | null;
+  jogador: Jogador | null;
+  operador: Operador | null;
 }
 
 export interface PartidaRequest {
-  kills: number;
-  deaths: number;
-  vitoria: boolean;
-  dataPartida: string;
-  jogadorId: number;
-  operadorId: number;
+  resultado: string;
   mapaId: number;
-  modoId: number;
+  modoDeJogoId: number;
+  dataHora: string;
 }

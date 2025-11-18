@@ -14,6 +14,7 @@ import {
     Map,
     Trophy,
     Target,
+    Gamepad2,
 } from "lucide-react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -74,6 +75,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             label: "Mapas",
             href: "/Mapas",
             icon: Map,
+        },
+        {
+            label: "Partidas",
+            href: "/Partidas",
+            icon: Gamepad2,
         },
         {
             label: "Competitivo",

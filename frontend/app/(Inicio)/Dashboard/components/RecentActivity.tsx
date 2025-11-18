@@ -8,10 +8,21 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { jogadorService } from "@/services/JogadorService";
 import { RankLog } from "@/types/jogador";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, RefreshCw, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const statusColors = {
     success: "bg-green-500",
@@ -136,30 +147,55 @@ const formatTimeAgo = (dateString: string): string => {
 export const RecentActivity = () => {
     const [rankLogs, setRankLogs] = useState<RankLog[]>([]);
     const [loading, setLoading] = useState(true);
+    const [recalculando, setRecalculando] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
+
+    const fetchRankLogs = async () => {
+        try {
+            setLoading(true);
+            const logs = await jogadorService.getRankLogs();
+            // Ordenar por data mais recente primeiro e pegar os 6 primeiros
+            const sortedLogs = logs
+                .sort(
+                    (a, b) =>
+                        new Date(b.dataAlteracao).getTime() -
+                        new Date(a.dataAlteracao).getTime()
+                )
+                .slice(0, 6);
+            setRankLogs(sortedLogs);
+        } catch (error) {
+            console.error("Erro ao buscar logs de rank:", error);
+            toast.error("Erro ao carregar logs de rank", {
+                position: "bottom-center",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchRankLogs = async () => {
-            try {
-                setLoading(true);
-                const logs = await jogadorService.getRankLogs();
-                // Ordenar por data mais recente primeiro e pegar os 6 primeiros
-                const sortedLogs = logs
-                    .sort(
-                        (a, b) =>
-                            new Date(b.dataAlteracao).getTime() -
-                            new Date(a.dataAlteracao).getTime()
-                    )
-                    .slice(0, 6);
-                setRankLogs(sortedLogs);
-            } catch (error) {
-                console.error("Erro ao buscar logs de rank:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchRankLogs();
     }, []);
+
+    const handleRecalcularRanks = async () => {
+        try {
+            setRecalculando(true);
+            setDialogOpen(false);
+            await jogadorService.recalcularRanks();
+            toast.success("Ranks recalculados com sucesso!", {
+                position: "bottom-center",
+            });
+            // Recarregar os logs após recalcular
+            await fetchRankLogs();
+        } catch (error) {
+            console.error("Erro ao recalcular ranks:", error);
+            toast.error("Erro ao recalcular ranks", {
+                position: "bottom-center",
+            });
+        } finally {
+            setRecalculando(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -200,10 +236,74 @@ export const RecentActivity = () => {
     return (
         <Card className="h-full flex flex-col">
             <CardHeader className="flex-shrink-0">
-                <CardTitle>Atividade Recente</CardTitle>
-                <CardDescription>
-                    Últimas alterações de rank dos jogadores
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Atividade Recente</CardTitle>
+                        <CardDescription>
+                            Últimas alterações de rank dos jogadores
+                        </CardDescription>
+                    </div>
+                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={recalculando}
+                                className="flex items-center gap-2"
+                            >
+                                {recalculando ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Recalculando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <RefreshCw className="h-4 w-4" />
+                                        Recalcular Ranks
+                                    </>
+                                )}
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Recalcular Ranks?</DialogTitle>
+                                <DialogDescription>
+                                    Esta ação irá recalcular todos os ranks dos
+                                    jogadores baseado no K/D atual. Isso pode
+                                    alterar os ranks de múltiplos jogadores e
+                                    gerar novos logs de alteração.
+                                    <br />
+                                    <br />
+                                    <strong>
+                                        Tem certeza que deseja continuar?
+                                    </strong>
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setDialogOpen(false)}
+                                    disabled={recalculando}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    onClick={handleRecalcularRanks}
+                                    disabled={recalculando}
+                                >
+                                    {recalculando ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            Recalculando...
+                                        </>
+                                    ) : (
+                                        "Confirmar"
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto">
                 <div className="space-y-4">

@@ -1,6 +1,6 @@
 // services/OperadorService.ts
 import api from "../lib/api";
-import { Operador, MetaAtaque } from "../types/operador";
+import { Operador, MetaAtaque, OperadorNaoUsado } from "../types/operador";
 
 export interface OperadorRequest {
   nome: string;
@@ -16,6 +16,11 @@ export const operadorService = {
 
   getMetaAtaque: async (): Promise<MetaAtaque[]> => {
     const response = await api.get<MetaAtaque[]>("/stats/view/meta-ataque");
+    return response.data;
+  },
+
+  getOperadoresNaoUsados: async (): Promise<OperadorNaoUsado[]> => {
+    const response = await api.get<OperadorNaoUsado[]>("/stats/query/anti-join-operadores");
     return response.data;
   },
 

@@ -7,6 +7,7 @@ import { Users, Trophy, TrendingUp, ArrowLeft } from "lucide-react";
 import { teamService } from "@/services/TeamService";
 import { Time } from "@/types/team";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function CompetitivoPage() {
     const [teams, setTeams] = useState<Time[]>([]);
@@ -67,16 +68,24 @@ export default function CompetitivoPage() {
                     <ArrowLeft className="h-4 w-4" />
                     Voltar para o início
                 </Link>
-                <div className="flex items-center gap-4">
-                    <Trophy className="h-12 w-12 text-primary" />
-                    <div>
-                        <h1 className="text-4xl font-bold">
-                            Times Competitivos
-                        </h1>
-                        <p className="text-muted-foreground text-lg">
-                            Explore os times profissionais e suas estatísticas
-                        </p>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Trophy className="h-12 w-12 text-primary" />
+                        <div>
+                            <h1 className="text-4xl font-bold">
+                                Times Competitivos
+                            </h1>
+                            <p className="text-muted-foreground text-lg">
+                                Explore os times profissionais e suas estatísticas
+                            </p>
+                        </div>
                     </div>
+                    <Link href="/Competitivo/Relacao">
+                        <Button variant="outline" className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            Ver Relação Completa
+                        </Button>
+                    </Link>
                 </div>
             </header>
 

@@ -40,6 +40,7 @@ import {
     ShieldCheck,
     Edit,
     Trash2,
+    AlertCircle,
 } from "lucide-react";
 import OperatorIcon from "@/components/ui/OperatorIcon";
 import { CreateOperatorButton } from "@/components/create-operator-button";
@@ -47,16 +48,21 @@ import { armaService } from "@/services/ArmaService";
 import { Arma } from "@/types/arma";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { OperadorNaoUsado } from "@/types/operador";
 
 export default function OperadoresPage() {
     const [operadores, setOperadores] = useState<Operador[]>([]);
     const [metaAtaque, setMetaAtaque] = useState<MetaAtaque[]>([]);
+    const [operadoresNaoUsados, setOperadoresNaoUsados] = useState<OperadorNaoUsado[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingNaoUsados, setLoadingNaoUsados] = useState(false);
     const [selectedOperador, setSelectedOperador] = useState<Operador | null>(
         null
     );
     const [dialogOpen, setDialogOpen] = useState(false);
     const [filter, setFilter] = useState<"all" | "Ataque" | "Defesa">("all");
+    const [filtroAtaque, setFiltroAtaque] = useState<"todos" | "mais-usados">("todos");
+    const [mostrarNaoUsados, setMostrarNaoUsados] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editingOperador, setEditingOperador] = useState<Operador | null>(
@@ -93,9 +99,39 @@ export default function OperadoresPage() {
         }
     };
 
+    const fetchOperadoresNaoUsados = async () => {
+        try {
+            setLoadingNaoUsados(true);
+            const data = await operadorService.getOperadoresNaoUsados();
+            setOperadoresNaoUsados(data);
+        } catch (error) {
+            console.error("Erro ao buscar operadores não usados:", error);
+            toast.error("Erro ao carregar operadores não utilizados", {
+                position: "bottom-center",
+            });
+        } finally {
+            setLoadingNaoUsados(false);
+        }
+    };
+
     useEffect(() => {
         fetchData();
     }, []);
+
+    useEffect(() => {
+        if (filter !== "Ataque") {
+            setFiltroAtaque("todos");
+        }
+        if (filter !== "all") {
+            setMostrarNaoUsados(false);
+        }
+    }, [filter]);
+
+    useEffect(() => {
+        if (mostrarNaoUsados && operadoresNaoUsados.length === 0) {
+            fetchOperadoresNaoUsados();
+        }
+    }, [mostrarNaoUsados]);
 
     const handleEdit = (operador: Operador, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -194,10 +230,36 @@ export default function OperadoresPage() {
         setDialogOpen(true);
     };
 
-    const filteredOperadores =
-        filter === "all"
+    const filteredOperadores = useMemo(() => {
+        // Se mostrarNaoUsados estiver ativo, mostrar apenas operadores não utilizados
+        if (mostrarNaoUsados && filter === "all") {
+            return operadoresNaoUsados
+                .map((item) => {
+                    const operadorCompleto = operadores.find(
+                        (op) => op.nome === item.operadorAtaqueNaoUsado && op.funcao === "Ataque"
+                    );
+                    return operadorCompleto;
+                })
+                .filter((op): op is Operador => op !== undefined);
+        }
+
+        let filtered = filter === "all"
             ? operadores
             : operadores.filter((op) => op.funcao === filter);
+
+        // Se o filtro for Ataque e o filtroAtaque for "mais-usados", ordenar por popularidade
+        if (filter === "Ataque" && filtroAtaque === "mais-usados") {
+            filtered = [...filtered].sort((a, b) => {
+                const metaA = metaAtaque.find((m) => m.nome === a.nome);
+                const metaB = metaAtaque.find((m) => m.nome === b.nome);
+                const totalA = metaA?.totalJogadoresQueUsam || 0;
+                const totalB = metaB?.totalJogadoresQueUsam || 0;
+                return totalB - totalA; // Ordem decrescente
+            });
+        }
+
+        return filtered;
+    }, [operadores, filter, filtroAtaque, metaAtaque, mostrarNaoUsados, operadoresNaoUsados]);
 
     if (loading) {
         return (
@@ -228,57 +290,119 @@ export default function OperadoresPage() {
             </div>
 
             {/* Filtros */}
-            <div className="mb-6 flex gap-2">
-                <button
-                    onClick={() => setFilter("all")}
-                    className={cn(
-                        "px-4 py-2 rounded-md text-sm font-medium transition-colors",
-                        filter === "all"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+            <div className="mb-6">
+                <div className="flex gap-2 flex-wrap">
+                    <button
+                        onClick={() => setFilter("all")}
+                        className={cn(
+                            "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                            filter === "all"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        )}
+                    >
+                        Todos
+                    </button>
+                    <button
+                        onClick={() => setFilter("Ataque")}
+                        className={cn(
+                            "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                            filter === "Ataque"
+                                ? "bg-red-600 text-white"
+                                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        )}
+                    >
+                        <Sword className="h-4 w-4" />
+                        Ataque
+                    </button>
+                    <button
+                        onClick={() => setFilter("Defesa")}
+                        className={cn(
+                            "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                            filter === "Defesa"
+                                ? "bg-blue-600 text-white"
+                                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        )}
+                    >
+                        <Shield className="h-4 w-4" />
+                        Defesa
+                    </button>
+                    {/* Filtro Mais Utilizados - aparece apenas quando Ataque está selecionado */}
+                    {filter === "Ataque" && (
+                        <button
+                            onClick={() => setFiltroAtaque(filtroAtaque === "mais-usados" ? "todos" : "mais-usados")}
+                            className={cn(
+                                "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                                filtroAtaque === "mais-usados"
+                                    ? "bg-orange-600 text-white hover:bg-orange-700"
+                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                            )}
+                        >
+                            <TrendingUp className="h-4 w-4" />
+                            Mais Utilizados
+                        </button>
                     )}
-                >
-                    Todos
-                </button>
-                <button
-                    onClick={() => setFilter("Ataque")}
-                    className={cn(
-                        "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
-                        filter === "Ataque"
-                            ? "bg-red-600 text-white"
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    {/* Filtro Não Utilizados - aparece apenas quando Todos está selecionado */}
+                    {filter === "all" && (
+                        <button
+                            onClick={() => setMostrarNaoUsados(!mostrarNaoUsados)}
+                            className={cn(
+                                "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                                mostrarNaoUsados
+                                    ? "bg-yellow-600 text-white hover:bg-yellow-700"
+                                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                            )}
+                            disabled={loadingNaoUsados}
+                        >
+                            {loadingNaoUsados ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Carregando...
+                                </>
+                            ) : (
+                                <>
+                                    <AlertCircle className="h-4 w-4" />
+                                    Não Utilizados
+                                </>
+                            )}
+                        </button>
                     )}
-                >
-                    <Sword className="h-4 w-4" />
-                    Ataque
-                </button>
-                <button
-                    onClick={() => setFilter("Defesa")}
-                    className={cn(
-                        "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
-                        filter === "Defesa"
-                            ? "bg-blue-600 text-white"
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
-                    )}
-                >
-                    <Shield className="h-4 w-4" />
-                    Defesa
-                </button>
+                </div>
             </div>
 
             {/* Grid de Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {filteredOperadores.map((operador) => (
-                    <Card
-                        key={operador.idOperador}
-                        className={cn(
-                            "hover:shadow-lg transition-all duration-300 cursor-pointer group relative",
-                            operador.funcao === "Ataque"
-                                ? "border-red-500/20 hover:border-red-500/40"
-                                : "border-blue-500/20 hover:border-blue-500/40"
-                        )}
-                        onClick={() => handleCardClick(operador)}
-                    >
+            {mostrarNaoUsados && filteredOperadores.length === 0 && !loadingNaoUsados ? (
+                <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+                    <AlertCircle className="h-16 w-16 text-muted-foreground" />
+                    <div className="text-center">
+                        <h3 className="text-lg font-semibold mb-2">
+                            Nenhum operador não utilizado
+                        </h3>
+                        <p className="text-muted-foreground">
+                            Todos os operadores de ataque estão sendo utilizados por pelo menos um jogador.
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {filteredOperadores.map((operador) => {
+                        const metaOperador = filter === "Ataque" && filtroAtaque === "mais-usados"
+                            ? metaAtaque.find((m) => m.nome === operador.nome)
+                            : null;
+                        
+                        return (
+                        <Card
+                            key={operador.idOperador}
+                            className={cn(
+                                "hover:shadow-lg transition-all duration-300 cursor-pointer group relative",
+                                mostrarNaoUsados
+                                    ? "border-yellow-500/20 hover:border-yellow-500/40"
+                                    : operador.funcao === "Ataque"
+                                    ? "border-red-500/20 hover:border-red-500/40"
+                                    : "border-blue-500/20 hover:border-blue-500/40"
+                            )}
+                            onClick={() => handleCardClick(operador)}
+                        >
                         {/* Botões de ação */}
                         <div className="absolute top-2 right-2 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
@@ -303,7 +427,9 @@ export default function OperadoresPage() {
                                 <div
                                     className={cn(
                                         "p-3 rounded-lg transition-colors",
-                                        operador.funcao === "Ataque"
+                                        mostrarNaoUsados
+                                            ? "bg-yellow-500/10 group-hover:bg-yellow-500/20"
+                                            : operador.funcao === "Ataque"
                                             ? "bg-red-500/10 group-hover:bg-red-500/20"
                                             : "bg-blue-500/10 group-hover:bg-blue-500/20"
                                     )}
@@ -321,13 +447,21 @@ export default function OperadoresPage() {
                                         variant="outline"
                                         className={cn(
                                             "mt-2",
-                                            operador.funcao === "Ataque"
+                                            mostrarNaoUsados
+                                                ? "border-yellow-500/50 text-yellow-600 dark:text-yellow-400"
+                                                : operador.funcao === "Ataque"
                                                 ? "border-red-500/50 text-red-600 dark:text-red-400"
                                                 : "border-blue-500/50 text-blue-600 dark:text-blue-400"
                                         )}
                                     >
-                                        {operador.funcao}
+                                        {mostrarNaoUsados ? "Não Utilizado" : operador.funcao}
                                     </Badge>
+                                    {filter === "Ataque" && filtroAtaque === "mais-usados" && metaOperador && (
+                                        <div className="mt-2 flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                                            <Users className="h-3 w-3" />
+                                            <span>{metaOperador.totalJogadoresQueUsam} jogadores</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </CardHeader>
@@ -337,8 +471,10 @@ export default function OperadoresPage() {
                             </CardDescription>
                         </CardContent>
                     </Card>
-                ))}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* Dialog de Detalhes */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

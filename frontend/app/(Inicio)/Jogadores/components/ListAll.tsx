@@ -38,6 +38,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    Tabs,
+    TabsList,
+    TabsTrigger,
+    TabsContent,
+} from "@/components/ui/tabs";
+import { RankGroup } from "@/types/jogador";
 
 interface ListAllProps {
     jogadores: Jogador[];
@@ -77,19 +84,24 @@ export default function ListAll({
     const [rankNome, setRankNome] = useState<string>("Bronze");
     const [rankNumero, setRankNumero] = useState<string>("I");
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [filterTipo, setFilterTipo] = useState<"rank" | "role">("rank");
     const [filterRankNome, setFilterRankNome] = useState<string>("");
     const [filterRankNumero, setFilterRankNumero] = useState<string>("");
+    const [filterRole, setFilterRole] = useState<string>("");
+    const [roleGroups, setRoleGroups] = useState<RankGroup[]>([]);
     const [allJogadores, setAllJogadores] = useState<Jogador[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [mapasData, operadoresData] = await Promise.all([
+                const [mapasData, operadoresData, rolesData] = await Promise.all([
                     mapaService.listAll(),
                     operadorService.listAll(),
+                    jogadorService.getRoleGroups(),
                 ]);
                 setMapas(mapasData);
                 setOperadores(operadoresData);
+                setRoleGroups(rolesData);
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
             }
@@ -170,37 +182,10 @@ export default function ListAll({
         try {
             setLoading(true);
             setError("");
-            const perfis = await jogadorService.listPerfis();
-            // Converter JogadorPerfil[] para Jogador[] para manter compatibilidade
-            const jogadoresConvertidos: Jogador[] = perfis.map((perfil) => ({
-                idJogador: perfil.idJogador,
-                nickname: perfil.nickname,
-                dados: {
-                    id: 0,
-                    nivel: perfil.nivel,
-                    winrate: perfil.winrateGeral,
-                    rankJogador: perfil.rankJogador,
-                    headshot: 0,
-                    kd: perfil.kd,
-                    plataforma: perfil.plataforma,
-                    horasJogadas: perfil.horasJogadas,
-                    mainRole: "",
-                    preferenciaJogo: "",
-                    mapaFavorito: perfil.mapaFavorito
-                        ? { idMapa: 0, nome: perfil.mapaFavorito }
-                        : null,
-                    mapaMaisVitorias: perfil.mapaMaisVitorias
-                        ? { idMapa: 0, nome: perfil.mapaMaisVitorias }
-                        : null,
-                    mapaMaisDerrotas: perfil.mapaMaisDerrotas
-                        ? { idMapa: 0, nome: perfil.mapaMaisDerrotas }
-                        : null,
-                },
-                operadoresAtaque: [],
-                operadoresDefesa: [],
-            }));
-            setAllJogadores(jogadoresConvertidos);
-            aplicarFiltroRank(jogadoresConvertidos);
+            // Usar listAll() para ter acesso ao mainRole necessário para filtro por Role
+            const jogadoresData = await jogadorService.listAll();
+            setAllJogadores(jogadoresData);
+            aplicarFiltro(jogadoresData);
             setSearchedJogador(null);
             setActiveSearch(null);
             if (showToast) {
@@ -235,7 +220,7 @@ export default function ListAll({
             if (data) {
                 setSearchedJogador(data);
                 // Filtra a lista para mostrar apenas o jogador encontrado
-                // Não aplica filtro de rank quando busca por ID específico
+                // Não aplica filtro quando busca por ID específico
                 setAllJogadores([data]);
                 setJogadores([data]);
                 toast.success(`Jogador encontrado: ${data.nickname}`, {
@@ -276,7 +261,7 @@ export default function ListAll({
             setActiveSearch("kd");
             const data = await jogadorService.listByMinKd(minKd);
             setAllJogadores(data);
-            aplicarFiltroRank(data);
+            aplicarFiltro(data);
             toast.success(
                 `Encontrados ${data.length} jogador(es) com K/D mínimo de ${minKd}`,
                 {
@@ -310,7 +295,7 @@ export default function ListAll({
             setActiveSearch("winrate");
             const data = await jogadorService.listByMinWinRate(minWinRate);
             setAllJogadores(data);
-            aplicarFiltroRank(data);
+            aplicarFiltro(data);
             toast.success(
                 `Encontrados ${data.length} jogador(es) com Win Rate mínimo de ${minWinRate}%`,
                 {
@@ -344,7 +329,7 @@ export default function ListAll({
             setActiveSearch("level");
             const data = await jogadorService.listByMinLevel(minLevel);
             setAllJogadores(data);
-            aplicarFiltroRank(data);
+            aplicarFiltro(data);
             toast.success(
                 `Encontrados ${data.length} jogador(es) com nível mínimo de ${minLevel}`,
                 {
@@ -415,21 +400,50 @@ export default function ListAll({
         setJogadores(jogadoresFiltrados);
     };
 
+    // Função para aplicar filtro de role
+    const aplicarFiltroRole = (listaJogadores: Jogador[]) => {
+        if (!filterRole) {
+            // Sem filtro, mostrar todos
+            setJogadores(listaJogadores);
+            return;
+        }
+
+        const jogadoresFiltrados = listaJogadores.filter((j) => {
+            if (!j.dados?.mainRole) return false;
+            return j.dados.mainRole === filterRole;
+        });
+
+        setJogadores(jogadoresFiltrados);
+    };
+
+    // Função unificada para aplicar filtro
+    const aplicarFiltro = (listaJogadores: Jogador[]) => {
+        if (filterTipo === "rank") {
+            aplicarFiltroRank(listaJogadores);
+        } else {
+            aplicarFiltroRole(listaJogadores);
+        }
+    };
+
     // Função para aplicar o filtro quando o usuário confirmar
-    const handleAplicarFiltroRank = () => {
-        aplicarFiltroRank(allJogadores);
+    const handleAplicarFiltro = () => {
+        aplicarFiltro(allJogadores);
         setIsFilterModalOpen(false);
-        if (filterRankNome || filterRankNumero) {
-            toast.success("Filtro de rank aplicado!", {
+        const temFiltro = filterTipo === "rank" 
+            ? (filterRankNome || filterRankNumero)
+            : filterRole;
+        if (temFiltro) {
+            toast.success(`Filtro por ${filterTipo === "rank" ? "Rank" : "Role"} aplicado!`, {
                 position: "bottom-center",
             });
         }
     };
 
-    // Função para limpar o filtro de rank
-    const handleLimparFiltroRank = () => {
+    // Função para limpar o filtro
+    const handleLimparFiltro = () => {
         setFilterRankNome("");
         setFilterRankNumero("");
+        setFilterRole("");
         setIsFilterModalOpen(false);
         // Recarrega todos os jogadores, igual ao botão "Recarregar"
         carregarTodosJogadores(true);
@@ -1170,8 +1184,9 @@ export default function ListAll({
                         className="relative"
                     >
                         <Filter className="h-4 w-4 mr-2" />
-                        Filtrar por Rank
-                        {(filterRankNome || filterRankNumero) && (
+                        Filtrar
+                        {((filterTipo === "rank" && (filterRankNome || filterRankNumero)) || 
+                          (filterTipo === "role" && filterRole)) && (
                             <span className="ml-2 h-2 w-2 bg-primary rounded-full" />
                         )}
                     </Button>
@@ -1346,19 +1361,22 @@ export default function ListAll({
                 </Card>
             )}
 
-            {/* Indicador de filtro de rank ativo */}
-            {(filterRankNome || filterRankNumero) && (
+            {/* Indicador de filtro ativo */}
+            {((filterTipo === "rank" && (filterRankNome || filterRankNumero)) || 
+              (filterTipo === "role" && filterRole)) && (
                 <Card className="mb-6 bg-primary/5 border-primary/20">
                     <CardContent className="p-4 flex items-center justify-between">
                         <p className="text-sm text-muted-foreground">
-                            Filtro de Rank ativo:{" "}
+                            Filtro por {filterTipo === "rank" ? "Rank" : "Role"} ativo:{" "}
                             <strong className="text-primary">
-                                {filterRankNome || "Qualquer"}{" "}
-                                {filterRankNumero && filterRankNumero !== "none" && filterRankNumero}
+                                {filterTipo === "rank" 
+                                    ? `${filterRankNome || "Qualquer"} ${filterRankNumero && filterRankNumero !== "none" ? filterRankNumero : ""}`
+                                    : filterRole
+                                }
                             </strong>
                         </p>
                         <Button
-                            onClick={handleLimparFiltroRank}
+                            onClick={handleLimparFiltro}
                             variant="ghost"
                             size="sm"
                             className="h-8"
@@ -1458,67 +1476,99 @@ export default function ListAll({
                 </DialogContent>
             </Dialog>
 
-            {/* Dialog de Filtro por Rank */}
+            {/* Dialog de Filtro por Rank ou Role */}
             <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Filtrar por Rank</DialogTitle>
+                        <DialogTitle>Filtrar Jogadores</DialogTitle>
                         <DialogDescription>
-                            Selecione o rank para filtrar os jogadores. Deixe em branco para não filtrar por aquele campo.
+                            Selecione o tipo de filtro e configure os valores. Deixe em branco para não filtrar por aquele campo.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div>
-                            <Label htmlFor="filterRankNome">Rank (Nome)</Label>
-                            <Select
-                                value={filterRankNome || "none"}
-                                onValueChange={(value) =>
-                                    setFilterRankNome(value === "none" ? "" : value)
-                                }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o rank" />
-                                </SelectTrigger>
-                                <SelectContent className="max-h-[200px]">
-                                    <SelectItem value="none">Todos</SelectItem>
-                                    <SelectItem value="Cobre">Cobre</SelectItem>
-                                    <SelectItem value="Bronze">Bronze</SelectItem>
-                                    <SelectItem value="Prata">Prata</SelectItem>
-                                    <SelectItem value="Ouro">Ouro</SelectItem>
-                                    <SelectItem value="Platina">Platina</SelectItem>
-                                    <SelectItem value="Esmeralda">Esmeralda</SelectItem>
-                                    <SelectItem value="Diamante">Diamante</SelectItem>
-                                    <SelectItem value="Campeão">Campeão</SelectItem>
-                                    <SelectItem value="Desconhecido">Desconhecido</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <Label htmlFor="filterRankNumero">Rank (Número)</Label>
-                            <Select
-                                value={filterRankNumero || "none"}
-                                onValueChange={(value) =>
-                                    setFilterRankNumero(value === "none" ? "" : value)
-                                }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o número" />
-                                </SelectTrigger>
-                                <SelectContent className="max-h-[200px]">
-                                    <SelectItem value="none">Todos</SelectItem>
-                                    <SelectItem value="I">I</SelectItem>
-                                    <SelectItem value="II">II</SelectItem>
-                                    <SelectItem value="III">III</SelectItem>
-                                    <SelectItem value="IV">IV</SelectItem>
-                                    <SelectItem value="V">V</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
+                    <Tabs value={filterTipo} onValueChange={(value) => setFilterTipo(value as "rank" | "role")} className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="rank">Por Rank</TabsTrigger>
+                            <TabsTrigger value="role">Por Role</TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="rank" className="space-y-4 py-4">
+                            <div>
+                                <Label htmlFor="filterRankNome">Rank (Nome)</Label>
+                                <Select
+                                    value={filterRankNome || "none"}
+                                    onValueChange={(value) =>
+                                        setFilterRankNome(value === "none" ? "" : value)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione o rank" />
+                                    </SelectTrigger>
+                                    <SelectContent className="max-h-[200px]">
+                                        <SelectItem value="none">Todos</SelectItem>
+                                        <SelectItem value="Cobre">Cobre</SelectItem>
+                                        <SelectItem value="Bronze">Bronze</SelectItem>
+                                        <SelectItem value="Prata">Prata</SelectItem>
+                                        <SelectItem value="Ouro">Ouro</SelectItem>
+                                        <SelectItem value="Platina">Platina</SelectItem>
+                                        <SelectItem value="Esmeralda">Esmeralda</SelectItem>
+                                        <SelectItem value="Diamante">Diamante</SelectItem>
+                                        <SelectItem value="Campeão">Campeão</SelectItem>
+                                        <SelectItem value="Desconhecido">Desconhecido</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="filterRankNumero">Rank (Número)</Label>
+                                <Select
+                                    value={filterRankNumero || "none"}
+                                    onValueChange={(value) =>
+                                        setFilterRankNumero(value === "none" ? "" : value)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione o número" />
+                                    </SelectTrigger>
+                                    <SelectContent className="max-h-[200px]">
+                                        <SelectItem value="none">Todos</SelectItem>
+                                        <SelectItem value="I">I</SelectItem>
+                                        <SelectItem value="II">II</SelectItem>
+                                        <SelectItem value="III">III</SelectItem>
+                                        <SelectItem value="IV">IV</SelectItem>
+                                        <SelectItem value="V">V</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="role" className="space-y-4 py-4">
+                            <div>
+                                <Label htmlFor="filterRole">Role (Função Principal)</Label>
+                                <Select
+                                    value={filterRole || "none"}
+                                    onValueChange={(value) =>
+                                        setFilterRole(value === "none" ? "" : value)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione a role" />
+                                    </SelectTrigger>
+                                    <SelectContent className="max-h-[200px]">
+                                        <SelectItem value="none">Todas</SelectItem>
+                                        {roleGroups.map((role) => (
+                                            <SelectItem key={role.chave} value={role.chave}>
+                                                {role.chave} ({role.contagem} jogadores)
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+                    
                     <DialogFooterComponent>
                         <Button
                             variant="outline"
-                            onClick={handleLimparFiltroRank}
+                            onClick={handleLimparFiltro}
                         >
                             Limpar Filtro
                         </Button>
@@ -1528,7 +1578,7 @@ export default function ListAll({
                         >
                             Cancelar
                         </Button>
-                        <Button onClick={handleAplicarFiltroRank}>
+                        <Button onClick={handleAplicarFiltro}>
                             Aplicar Filtro
                         </Button>
                     </DialogFooterComponent>

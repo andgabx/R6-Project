@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { jogadorService } from "@/services/JogadorService";
 import { Jogador } from "@/types/jogador";
-import { Users, Shield, Map, Activity, Clock, BarChart3 } from "lucide-react";
+import { Users, Shield, Map, Activity, Clock, BarChart3, Gamepad2 } from "lucide-react";
 import { MetricCard } from "./(Inicio)/Dashboard/components/MetricCard";
 import { KdMetricCard } from "./(Inicio)/Dashboard/components/KdMetricCard";
 import { ActionCard } from "./(Inicio)/Dashboard/components/ActionCard";
@@ -95,7 +95,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Action Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 items-stretch">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 items-stretch">
                     <ActionCard
                         title="Jogadores"
                         description="Gerencie perfis e estatísticas dos jogadores"
@@ -116,6 +116,13 @@ export default function HomePage() {
                         icon={Map}
                         href="/Mapas"
                         color="purple"
+                    />
+                    <ActionCard
+                        title="Partidas"
+                        description="Gerencie e visualize todas as partidas"
+                        icon={Gamepad2}
+                        href="/Partidas"
+                        color="red"
                     />
                     <ActionCard
                         title="Dashboard"

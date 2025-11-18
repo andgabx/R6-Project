@@ -16,10 +16,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Map, Loader2, Edit, Trash2 } from "lucide-react";
+import { Map, Loader2, Edit, Trash2, Users, Trophy } from "lucide-react";
 import { CreateMapButton } from "@/components/create-map-button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { jogadorService } from "@/services/JogadorService";
+import { TimePorMapa } from "@/types/jogador";
 
 // Descrições/histórias dos mapas (mock data - pode ser substituído por dados reais)
 const mapDescriptions: Record<string, { description: string; image?: string }> =
@@ -157,6 +159,8 @@ export default function MapasPage() {
     const [deletingMapa, setDeletingMapa] = useState<Mapa | null>(null);
     const [editNome, setEditNome] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
+    const [timesPorMapa, setTimesPorMapa] = useState<TimePorMapa[]>([]);
+    const [loadingTimes, setLoadingTimes] = useState(false);
 
     const fetchMapas = async () => {
         try {
@@ -243,9 +247,20 @@ export default function MapasPage() {
         }
     };
 
-    const handleCardClick = (mapa: Mapa) => {
+    const handleCardClick = async (mapa: Mapa) => {
         setSelectedMapa(mapa);
         setDialogOpen(true);
+        // Buscar times que jogaram neste mapa
+        try {
+            setLoadingTimes(true);
+            const times = await jogadorService.getTimesPorMapa(mapa.nome);
+            setTimesPorMapa(times);
+        } catch (error) {
+            console.error("Erro ao buscar times do mapa:", error);
+            setTimesPorMapa([]);
+        } finally {
+            setLoadingTimes(false);
+        }
     };
 
     const getMapDescription = (nome: string) => {
@@ -437,6 +452,40 @@ export default function MapasPage() {
                                     ? getMapDescription(selectedMapa.nome)
                                     : ""}
                             </p>
+                        </div>
+
+                        {/* Times que jogaram neste mapa */}
+                        <div className="space-y-2 pt-4 border-t">
+                            <div className="flex items-center gap-2">
+                                <Trophy className="h-5 w-5 text-primary" />
+                                <h3 className="font-semibold text-lg">
+                                    Times que Jogaram
+                                </h3>
+                            </div>
+                            {loadingTimes ? (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    <span>Carregando times...</span>
+                                </div>
+                            ) : timesPorMapa.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                    Nenhum time jogou neste mapa ainda.
+                                </p>
+                            ) : (
+                                <div className="flex flex-wrap gap-2">
+                                    {timesPorMapa.map((time, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-md border border-primary/20"
+                                        >
+                                            <Users className="h-4 w-4 text-primary" />
+                                            <span className="text-sm font-medium">
+                                                {time.nome}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Informações Adicionais */}

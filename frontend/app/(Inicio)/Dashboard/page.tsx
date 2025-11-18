@@ -9,6 +9,7 @@ import { RankChart } from "./components/RankChart";
 import { KdHorasChart } from "./components/KdHorasChart";
 import { WlKdChart } from "./components/WinKdChart";
 import { KdHeadshotChart } from "./components/KdHeadshotChart";
+import { KpisCard } from "./components/KpisCard";
 
 const DashboardPage = () => {
     const [players, setPlayers] = useState<Jogador[]>([]);
@@ -29,6 +30,7 @@ const DashboardPage = () => {
     return (
         <div className="container mx-auto p-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+                <KpisCard />
                 <PlatformChart players={players} />
                 <FavoriteMapChart players={players} />
                 <RankChart />

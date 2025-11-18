@@ -1,5 +1,6 @@
 // types/operador.ts
 export interface Habilidades {
+    gadgetName: string;
     gadgetAbility: string;
 }
 
@@ -26,4 +27,8 @@ export interface MetaAtaque {
     gadgetUnicoAtaque: string | null;
     totalJogadoresQueUsam: number;
     winrateMedioEntreEles: number | null;
+}
+
+export interface OperadorNaoUsado {
+    operadorAtaqueNaoUsado: string;
 }
