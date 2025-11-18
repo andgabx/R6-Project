@@ -2,17 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { mapaService } from "@/services/MapaService";
+import { mapaService, MapaRequest } from "@/services/MapaService";
 import { Mapa } from "@/types/mapa";
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Map, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Map, Loader2, Edit, Trash2 } from "lucide-react";
+import { CreateMapButton } from "@/components/create-map-button";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 // Descrições/histórias dos mapas (mock data - pode ser substituído por dados reais)
 const mapDescriptions: Record<string, { description: string; image?: string }> =
@@ -144,22 +151,97 @@ export default function MapasPage() {
     const [loading, setLoading] = useState(true);
     const [selectedMapa, setSelectedMapa] = useState<Mapa | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [editingMapa, setEditingMapa] = useState<Mapa | null>(null);
+    const [deletingMapa, setDeletingMapa] = useState<Mapa | null>(null);
+    const [editNome, setEditNome] = useState("");
+    const [actionLoading, setActionLoading] = useState(false);
+
+    const fetchMapas = async () => {
+        try {
+            setLoading(true);
+            const data = await mapaService.listAll();
+            setMapas(data);
+        } catch (error) {
+            console.error("Erro ao buscar mapas:", error);
+            toast.error("Erro ao carregar mapas", {
+                position: "bottom-center",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchMapas = async () => {
-            try {
-                setLoading(true);
-                const data = await mapaService.listAll();
-                setMapas(data);
-            } catch (error) {
-                console.error("Erro ao buscar mapas:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchMapas();
     }, []);
+
+    const handleEdit = (mapa: Mapa, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingMapa(mapa);
+        setEditNome(mapa.nome);
+        setEditDialogOpen(true);
+    };
+
+    const handleDelete = (mapa: Mapa, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setDeletingMapa(mapa);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleUpdate = async () => {
+        if (!editingMapa || !editNome.trim()) {
+            toast.error("Por favor, insira um nome válido", {
+                position: "bottom-center",
+            });
+            return;
+        }
+
+        try {
+            setActionLoading(true);
+            const data: MapaRequest = { nome: editNome.trim() };
+            await mapaService.update(editingMapa.idMapa, data);
+            toast.success("Mapa atualizado com sucesso!", {
+                position: "bottom-center",
+            });
+            setEditDialogOpen(false);
+            setEditingMapa(null);
+            setEditNome("");
+            fetchMapas();
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao atualizar mapa: ${errorMessage}`, {
+                position: "bottom-center",
+            });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deletingMapa) return;
+
+        try {
+            setActionLoading(true);
+            await mapaService.delete(deletingMapa.idMapa);
+            toast.success("Mapa deletado com sucesso!", {
+                position: "bottom-center",
+            });
+            setDeleteDialogOpen(false);
+            setDeletingMapa(null);
+            fetchMapas();
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao deletar mapa: ${errorMessage}`, {
+                position: "bottom-center",
+            });
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     const handleCardClick = (mapa: Mapa) => {
         setSelectedMapa(mapa);
@@ -241,11 +323,11 @@ export default function MapasPage() {
                     return (
                         <Card
                             key={mapa.idMapa}
-                            className={`overflow-hidden p-0 h-full ${
-                                hasImage
-                                    ? "hover:shadow-lg transition-all duration-300 cursor-pointer group"
-                                    : ""
-                            }`}
+                            className={cn(
+                                "overflow-hidden p-0 h-full relative group",
+                                hasImage &&
+                                    "hover:shadow-lg transition-all duration-300 cursor-pointer"
+                            )}
                             onClick={
                                 hasImage
                                     ? () => handleCardClick(mapa)
@@ -272,13 +354,32 @@ export default function MapasPage() {
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="w-full h-full bg-muted flex flex-col items-center justify-center p-4">
+                                    <div className="w-full h-full bg-muted flex flex-col items-center justify-center p-4 relative">
                                         <Map className="h-16 w-16 text-muted-foreground mb-3" />
                                         <CardTitle className="text-center text-base md:text-lg text-muted-foreground font-bold">
                                             {mapa.nome}
                                         </CardTitle>
                                     </div>
                                 )}
+                                {/* Botões de ação */}
+                                <div className="absolute top-2 right-2 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                        size="icon"
+                                        variant="secondary"
+                                        className="h-8 w-8 bg-background/90 hover:bg-background"
+                                        onClick={(e) => handleEdit(mapa, e)}
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        size="icon"
+                                        variant="destructive"
+                                        className="h-8 w-8 bg-destructive/90 hover:bg-destructive"
+                                        onClick={(e) => handleDelete(mapa, e)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
                         </Card>
                     );
@@ -362,6 +463,98 @@ export default function MapasPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Dialog de Edição */}
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Edit className="h-5 w-5 text-primary" />
+                            Editar Mapa
+                        </DialogTitle>
+                        <DialogDescription>
+                            Atualize as informações do mapa
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div>
+                            <Label htmlFor="edit-nome">Nome do Mapa</Label>
+                            <Input
+                                id="edit-nome"
+                                value={editNome}
+                                onChange={(e) => setEditNome(e.target.value)}
+                                placeholder="Ex: Consulado"
+                                required
+                                disabled={actionLoading}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setEditDialogOpen(false);
+                                setEditingMapa(null);
+                                setEditNome("");
+                            }}
+                            disabled={actionLoading}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={handleUpdate}
+                            disabled={actionLoading || !editNome.trim()}
+                        >
+                            {actionLoading ? "Salvando..." : "Salvar"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog de Confirmação de Deleção */}
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Trash2 className="h-5 w-5 text-destructive" />
+                            Confirmar Deleção
+                        </DialogTitle>
+                        <DialogDescription>
+                            Você tem certeza que deseja deletar o mapa{" "}
+                            <strong className="text-destructive">
+                                {deletingMapa?.nome}
+                            </strong>
+                            ? Esta ação não pode ser desfeita.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setDeleteDialogOpen(false);
+                                setDeletingMapa(null);
+                            }}
+                            disabled={actionLoading}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDeleteConfirm}
+                            disabled={actionLoading}
+                        >
+                            {actionLoading ? "Deletando..." : "Deletar"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Botão flutuante para criar mapa */}
+            <CreateMapButton onMapCreated={fetchMapas} />
         </div>
     );
 }

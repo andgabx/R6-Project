@@ -27,7 +27,13 @@ import { operadorService } from "@/services/OperadorService";
 import { Operador } from "@/types/operador";
 import { toast } from "sonner";
 
-export function CreatePlayerButton() {
+interface CreatePlayerButtonProps {
+    onPlayerCreated?: () => void;
+}
+
+export function CreatePlayerButton({
+    onPlayerCreated,
+}: CreatePlayerButtonProps = {}) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string>("");
@@ -356,10 +362,9 @@ export function CreatePlayerButton() {
             toast.success("Jogador criado com sucesso!", {
                 position: "bottom-center",
             });
+            onPlayerCreated?.();
             resetForm();
             setDialogOpen(false);
-            // Recarrega a página para atualizar os dados
-            window.location.reload();
         } catch (error) {
             console.error("Erro ao criar jogador:", error);
             const errorMessage =

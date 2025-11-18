@@ -16,7 +16,6 @@ import {
     Target,
 } from "lucide-react";
 import { useState } from "react";
-import { CreatePlayerButton } from "@/components/create-player-button";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
@@ -128,7 +127,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </SidebarBody>
             </Sidebar>
             <main className="flex-1 overflow-y-auto">{children}</main>
-            <CreatePlayerButton />
         </div>
     );
 }

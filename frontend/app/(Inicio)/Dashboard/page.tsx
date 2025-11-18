@@ -8,6 +8,7 @@ import { FavoriteMapChart } from "./components/FavoriteMapChart";
 import { RankChart } from "./components/RankChart";
 import { KdHorasChart } from "./components/KdHorasChart";
 import { WlKdChart } from "./components/WinKdChart";
+import { KdHeadshotChart } from "./components/KdHeadshotChart";
 
 const DashboardPage = () => {
     const [players, setPlayers] = useState<Jogador[]>([]);
@@ -33,6 +34,7 @@ const DashboardPage = () => {
                 <RankChart />
                 <KdHorasChart players={players} />
                 <WlKdChart players={players} />
+                <KdHeadshotChart />
             </div>
         </div>
     );

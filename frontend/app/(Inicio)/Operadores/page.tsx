@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { operadorService } from "@/services/OperadorService";
+import { operadorService, OperadorRequest } from "@/services/OperadorService";
 import { Operador, MetaAtaque } from "@/types/operador";
 import {
     Card,
@@ -14,9 +14,20 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
     Shield,
@@ -27,8 +38,14 @@ import {
     TrendingUp,
     Gauge,
     ShieldCheck,
+    Edit,
+    Trash2,
 } from "lucide-react";
 import OperatorIcon from "@/components/ui/OperatorIcon";
+import { CreateOperatorButton } from "@/components/create-operator-button";
+import { armaService } from "@/services/ArmaService";
+import { Arma } from "@/types/arma";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export default function OperadoresPage() {
@@ -40,26 +57,126 @@ export default function OperadoresPage() {
     );
     const [dialogOpen, setDialogOpen] = useState(false);
     const [filter, setFilter] = useState<"all" | "Ataque" | "Defesa">("all");
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [editingOperador, setEditingOperador] = useState<Operador | null>(
+        null
+    );
+    const [deletingOperador, setDeletingOperador] = useState<Operador | null>(
+        null
+    );
+    const [editNome, setEditNome] = useState("");
+    const [editFuncao, setEditFuncao] = useState<"Ataque" | "Defesa">("Ataque");
+    const [editArmaId, setEditArmaId] = useState<number>(0);
+    const [armas, setArmas] = useState<Arma[]>([]);
+    const [actionLoading, setActionLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const [operadoresData, metaAtaqueData] = await Promise.all([
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [operadoresData, metaAtaqueData, armasData] =
+                await Promise.all([
                     operadorService.listAll(),
                     operadorService.getMetaAtaque(),
+                    armaService.listAll(),
                 ]);
-                setOperadores(operadoresData);
-                setMetaAtaque(metaAtaqueData);
-            } catch (error) {
-                console.error("Erro ao buscar dados:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+            setOperadores(operadoresData);
+            setMetaAtaque(metaAtaqueData);
+            setArmas(armasData);
+        } catch (error) {
+            console.error("Erro ao buscar dados:", error);
+            toast.error("Erro ao carregar operadores", {
+                position: "bottom-center",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchData();
     }, []);
+
+    const handleEdit = (operador: Operador, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingOperador(operador);
+        setEditNome(operador.nome);
+        setEditFuncao(operador.funcao);
+        // Pegar a primeira arma do operador como padrão
+        setEditArmaId(operador.armas.length > 0 ? operador.armas[0].idArma : 0);
+        setEditDialogOpen(true);
+    };
+
+    const handleDelete = (operador: Operador, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setDeletingOperador(operador);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleUpdate = async () => {
+        if (!editingOperador || !editNome.trim()) {
+            toast.error("Por favor, insira um nome válido", {
+                position: "bottom-center",
+            });
+            return;
+        }
+        if (!editArmaId || editArmaId === 0) {
+            toast.error("Por favor, selecione uma arma", {
+                position: "bottom-center",
+            });
+            return;
+        }
+
+        try {
+            setActionLoading(true);
+            const data: OperadorRequest = {
+                nome: editNome.trim(),
+                funcao: editFuncao,
+                armaId: editArmaId,
+            };
+            await operadorService.update(editingOperador.idOperador, data);
+            toast.success("Operador atualizado com sucesso!", {
+                position: "bottom-center",
+            });
+            setEditDialogOpen(false);
+            setEditingOperador(null);
+            setEditNome("");
+            setEditFuncao("Ataque");
+            setEditArmaId(0);
+            fetchData();
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao atualizar operador: ${errorMessage}`, {
+                position: "bottom-center",
+            });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deletingOperador) return;
+
+        try {
+            setActionLoading(true);
+            await operadorService.delete(deletingOperador.idOperador);
+            toast.success("Operador deletado com sucesso!", {
+                position: "bottom-center",
+            });
+            setDeleteDialogOpen(false);
+            setDeletingOperador(null);
+            fetchData();
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao deletar operador: ${errorMessage}`, {
+                position: "bottom-center",
+            });
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     // Função para buscar meta do operador selecionado
     const selectedOperadorMeta = useMemo(() => {
@@ -155,13 +272,32 @@ export default function OperadoresPage() {
                     <Card
                         key={operador.idOperador}
                         className={cn(
-                            "hover:shadow-lg transition-all duration-300 cursor-pointer group",
+                            "hover:shadow-lg transition-all duration-300 cursor-pointer group relative",
                             operador.funcao === "Ataque"
                                 ? "border-red-500/20 hover:border-red-500/40"
                                 : "border-blue-500/20 hover:border-blue-500/40"
                         )}
                         onClick={() => handleCardClick(operador)}
                     >
+                        {/* Botões de ação */}
+                        <div className="absolute top-2 right-2 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                                size="icon"
+                                variant="secondary"
+                                className="h-8 w-8 bg-background/90 hover:bg-background"
+                                onClick={(e) => handleEdit(operador, e)}
+                            >
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                size="icon"
+                                variant="destructive"
+                                className="h-8 w-8 bg-destructive/90 hover:bg-destructive"
+                                onClick={(e) => handleDelete(operador, e)}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
                         <CardHeader className="pb-3">
                             <div className="flex flex-col items-center gap-3">
                                 <div
@@ -434,6 +570,148 @@ export default function OperadoresPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Dialog de Edição */}
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Edit className="h-5 w-5 text-primary" />
+                            Editar Operador
+                        </DialogTitle>
+                        <DialogDescription>
+                            Atualize as informações do operador
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div>
+                            <Label htmlFor="edit-nome">Nome do Operador</Label>
+                            <Input
+                                id="edit-nome"
+                                value={editNome}
+                                onChange={(e) => setEditNome(e.target.value)}
+                                placeholder="Ex: Ash"
+                                required
+                                disabled={actionLoading}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="edit-funcao">Função</Label>
+                            <Select
+                                value={editFuncao}
+                                onValueChange={(value) =>
+                                    setEditFuncao(value as "Ataque" | "Defesa")
+                                }
+                                disabled={actionLoading}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione a função" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Ataque">
+                                        Ataque
+                                    </SelectItem>
+                                    <SelectItem value="Defesa">
+                                        Defesa
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label htmlFor="edit-armaId">Arma</Label>
+                            <Select
+                                value={editArmaId.toString()}
+                                onValueChange={(value) =>
+                                    setEditArmaId(parseInt(value))
+                                }
+                                disabled={actionLoading}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione uma arma" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[200px]">
+                                    {armas.map((arma) => (
+                                        <SelectItem
+                                            key={arma.idArma}
+                                            value={arma.idArma.toString()}
+                                        >
+                                            {arma.nome} ({arma.tipo})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setEditDialogOpen(false);
+                                setEditingOperador(null);
+                                setEditNome("");
+                                setEditFuncao("Ataque");
+                                setEditArmaId(0);
+                            }}
+                            disabled={actionLoading}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={handleUpdate}
+                            disabled={
+                                actionLoading || !editNome.trim() || !editArmaId
+                            }
+                        >
+                            {actionLoading ? "Salvando..." : "Salvar"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog de Confirmação de Deleção */}
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Trash2 className="h-5 w-5 text-destructive" />
+                            Confirmar Deleção
+                        </DialogTitle>
+                        <DialogDescription>
+                            Você tem certeza que deseja deletar o operador{" "}
+                            <strong className="text-destructive">
+                                {deletingOperador?.nome}
+                            </strong>
+                            ? Esta ação não pode ser desfeita.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setDeleteDialogOpen(false);
+                                setDeletingOperador(null);
+                            }}
+                            disabled={actionLoading}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDeleteConfirm}
+                            disabled={actionLoading}
+                        >
+                            {actionLoading ? "Deletando..." : "Deletar"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Botão flutuante para criar operador */}
+            <CreateOperatorButton onOperatorCreated={fetchData} />
         </div>
     );
 }

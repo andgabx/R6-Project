@@ -2,354 +2,553 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Crosshair, AlertTriangle, Loader2, Trash2, Search, Edit } from "lucide-react";
-import { armaService } from "@/services/ArmaService";
-import { Arma, ArmaRequest } from "@/types/arma";
-
-type TabType =
-  | "listAll"
-  | "findById"
-  | "create"
-  | "update"
-  | "delete";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+    Crosshair,
+    Loader2,
+    Trash2,
+    Search,
+    Edit,
+} from "lucide-react";
+import { armaService, ArmaRequest } from "@/services/ArmaService";
+import { Arma } from "@/types/arma";
+import { CreateWeaponButton } from "@/components/create-weapon-button";
+import { toast } from "sonner";
 
 export default function ArmasPage() {
-  const [activeTab, setActiveTab] = useState<TabType>("listAll");
-  const [armas, setArmas] = useState<Arma[]>([]);
-  const [arma, setArma] = useState<Arma | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [formData, setFormData] = useState<ArmaRequest>({ nome: "", tipo: "", dano: 0 });
-  const [selectedArma, setSelectedArma] = useState<Arma | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isNotFoundModalOpen, setIsNotFoundModalOpen] = useState(false);
+    const [armas, setArmas] = useState<Arma[]>([]);
+    const [allArmas, setAllArmas] = useState<Arma[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [selectedArma, setSelectedArma] = useState<Arma | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
 
-  const [searchId, setSearchId] = useState<number>(0);
+    // Estados de busca
+    const [searchId, setSearchId] = useState<number>(0);
+    const [minDano, setMinDano] = useState<number>(0);
+    const [activeSearch, setActiveSearch] = useState<
+        "id" | "dano" | null
+    >(null);
+    const [searchedArma, setSearchedArma] = useState<Arma | null>(null);
 
-  const handleError = (error: unknown, message: string) => {
-    console.error(message, error);
-    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
-    setError(`${message}: ${errorMessage}`);
-  };
+    // Estados do formulário de edição
+    const [editNome, setEditNome] = useState("");
+    const [editTipo, setEditTipo] = useState("");
+    const [editDano, setEditDano] = useState<number>(0);
 
-  useEffect(() => {
-    setError("");
-    setArma(null);
-    setArmas([]);
-    if (["listAll", "update", "delete"].includes(activeTab)) {
-      carregarTodasArmas();
-    }
-  }, [activeTab]);
+    const tiposArmas = [
+        "Assault Rifles",
+        "Submachine Guns (SMGs)",
+        "Shotguns",
+        "Marksman Rifles",
+        "Light Machine Guns (LMGs)",
+        "Machine Pistols",
+        "Handguns",
+    ];
 
-  const carregarTodasArmas = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const data = await armaService.listAll();
-      setArmas(data);
-    } catch (error) {
-      handleError(error, "Erro ao carregar armas");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchArmas = async () => {
+        try {
+            setLoading(true);
+            const data = await armaService.listAll();
+            setAllArmas(data);
+            setArmas(data);
+        } catch (error) {
+            console.error("Erro ao buscar armas:", error);
+            toast.error("Erro ao carregar armas", {
+                position: "bottom-center",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const buscarArmaPorId = async () => {
-    if (!searchId) {
-      setError("Por favor, insira um ID válido");
-      return;
-    }
-    try {
-      setLoading(true);
-      setError("");
-      setArma(null);
-      const data = await armaService.findById(searchId);
-      if (data) {
-        setArma(data);
-      } else {
-        setIsNotFoundModalOpen(true);
-      }
-    } catch (error) {
-        setIsNotFoundModalOpen(true);
-    } finally {
-      setLoading(false);
-    }
-  };
+    useEffect(() => {
+        fetchArmas();
+    }, []);
 
-  const criarArma = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      setError("");
-      const created = await armaService.create(formData);
-      setArma(created);
-      setFormData({ nome: "", tipo: "", dano: 0 });
-      alert("Arma criada com sucesso!");
-    } catch (error) {
-      handleError(error, "Erro ao criar arma");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const buscarArmaPorId = async () => {
+        if (!searchId) {
+            toast.error("Por favor, insira um ID válido", {
+                position: "bottom-center",
+            });
+            return;
+        }
+        try {
+            setLoading(true);
+            setActiveSearch("id");
+            const data = await armaService.findById(searchId);
+            if (data) {
+                setSearchedArma(data);
+                setArmas([data]);
+                toast.success(`Arma encontrada: ${data.nome}`, {
+                    position: "bottom-center",
+                });
+            } else {
+                toast.error(
+                    `Nenhuma arma foi encontrada com o ID ${searchId}`,
+                    {
+                        position: "bottom-center",
+                    }
+                );
+            }
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(
+                `Não foi possível encontrar a arma com ID ${searchId}: ${errorMessage}`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const handleUpdateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedArma) return;
-    try {
-      setLoading(true);
-      setError("");
-      const updated = await armaService.update(selectedArma.idArma, formData);
-      setArma(updated);
-      setIsEditModalOpen(false);
-      alert("Arma atualizada com sucesso!");
-      carregarTodasArmas(); // Refresh list
-    } catch (error) {
-      handleError(error, "Erro ao atualizar arma");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const buscarPorDanoMinimo = async () => {
+        if (!minDano || minDano <= 0) {
+            toast.error("Por favor, insira um dano mínimo válido", {
+                position: "bottom-center",
+            });
+            return;
+        }
+        try {
+            setLoading(true);
+            setActiveSearch("dano");
+            const data = await armaService.listByMinDamage(minDano);
+            setAllArmas(data);
+            setArmas(data);
+            toast.success(
+                `Encontradas ${data.length} arma(s) com dano mínimo de ${minDano}`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(
+                `Erro ao buscar armas por dano mínimo: ${errorMessage}`,
+                {
+                    position: "bottom-center",
+                }
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const handleDeleteConfirm = async () => {
-    if (!selectedArma) return;
-    try {
-      setLoading(true);
-      setError("");
-      await armaService.delete(selectedArma.idArma);
-      setIsDeleteModalOpen(false);
-      alert("Arma deletada com sucesso!");
-      carregarTodasArmas(); // Refresh list
-    } catch (error) {
-      handleError(error, "Erro ao deletar arma");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const limparBusca = () => {
+        setSearchId(0);
+        setMinDano(0);
+        setSearchedArma(null);
+        setActiveSearch(null);
+        fetchArmas();
+    };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: ['dano'].includes(name) ? parseInt(value) || 0 : value });
-  };
+    const handleEdit = (arma: Arma) => {
+        setSelectedArma(arma);
+        setEditNome(arma.nome);
+        setEditTipo(arma.tipo);
+        setEditDano(arma.dano);
+        setIsEditModalOpen(true);
+    };
 
-  const handleSelectChange = (value: string) => {
-    setFormData({ ...formData, tipo: value });
-  };
+    const handleUpdate = async () => {
+        if (!selectedArma || !editNome.trim() || !editTipo || !editDano) {
+            toast.error("Por favor, preencha todos os campos", {
+                position: "bottom-center",
+            });
+            return;
+        }
 
-  const openEditModal = (arma: Arma) => {
-    setSelectedArma(arma);
-    setFormData({ nome: arma.nome, tipo: arma.tipo, dano: arma.dano });
-    setIsEditModalOpen(true);
-  };
+        try {
+            setActionLoading(true);
+            const data: ArmaRequest = {
+                nome: editNome.trim(),
+                tipo: editTipo,
+                dano: editDano,
+            };
+            await armaService.update(selectedArma.idArma, data);
+            toast.success("Arma atualizada com sucesso!", {
+                position: "bottom-center",
+            });
+            setIsEditModalOpen(false);
+            setSelectedArma(null);
+            fetchArmas();
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao atualizar arma: ${errorMessage}`, {
+                position: "bottom-center",
+            });
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
-  const openDeleteModal = (arma: Arma) => {
-    setSelectedArma(arma);
-    setIsDeleteModalOpen(true);
-  };
+    const handleDelete = (arma: Arma) => {
+        setSelectedArma(arma);
+        setIsDeleteModalOpen(true);
+    };
 
-  const armaForm = (handleSubmit: (e: React.FormEvent) => void, submitText: string) => (
-    <form onSubmit={handleSubmit}>
-      <div className="p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="nome">Nome da Arma</Label>
-            <Input id="nome" name="nome" placeholder="Nome da arma" value={formData.nome} onChange={handleInputChange} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tipo">Tipo</Label>
-            <Select name="tipo" value={formData.tipo} onValueChange={handleSelectChange} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Assault Rifles">Assault Rifles</SelectItem>
-                <SelectItem value="Submachine Guns (SMGs)">Submachine Guns (SMGs)</SelectItem>
-                <SelectItem value="Shotguns">Shotguns</SelectItem>
-                <SelectItem value="Marksman Rifles">Marksman Rifles</SelectItem>
-                <SelectItem value="Light Machine Guns (LMGs)">Light Machine Guns (LMGs)</SelectItem>
-                <SelectItem value="Machine Pistols">Machine Pistols</SelectItem>
-                <SelectItem value="Handguns">Handguns</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="dano">Dano</Label>
-          <Input id="dano" name="dano" type="number" placeholder="Dano" value={formData.dano || ""} onChange={handleInputChange} required />
-        </div>
-        <Button type="submit" className="w-full md:w-auto">
-          {submitText}
-        </Button>
-      </div>
-    </form>
-  );
+    const handleDeleteConfirm = async () => {
+        if (!selectedArma) return;
 
-  const renderArmaList = (actions?: { onEdit?: (arma: Arma) => void; onDelete?: (arma: Arma) => void; }) => (
-    <div>
-      <h3 className="text-xl font-semibold mb-4">Resultados ({armas.length} armas)</h3>
-      {armas.length === 0 ? (
-        <p className="text-muted-foreground">Nenhuma arma encontrada.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {armas.map((a) => (
-            <Card key={a.idArma}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  {a.nome}
-                  <span className="text-sm font-normal text-muted-foreground">ID: {a.idArma}</span>
-                </CardTitle>
-                <CardDescription>{a.tipo}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex justify-between items-center">
-                <p><strong className="text-primary">Dano:</strong> {a.dano}</p>
-                <div className="flex gap-2">
-                  {actions?.onEdit && <Button variant="outline" size="icon" onClick={() => actions.onEdit?.(a)}><Edit className="h-4 w-4" /></Button>}
-                  {actions?.onDelete && <Button variant="destructive" size="icon" onClick={() => actions.onDelete?.(a)}><Trash2 className="h-4 w-4" /></Button>}
+        try {
+            setActionLoading(true);
+            await armaService.delete(selectedArma.idArma);
+            toast.success("Arma deletada com sucesso!", {
+                position: "bottom-center",
+            });
+            setIsDeleteModalOpen(false);
+            setSelectedArma(null);
+            fetchArmas();
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error(`Erro ao deletar arma: ${errorMessage}`, {
+                position: "bottom-center",
+            });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    if (loading && armas.length === 0) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="flex flex-col items-center gap-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-muted-foreground">
+                            Carregando armas...
+                        </p>
+                    </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
-  const renderContent = (tab: TabType) => {
-    switch (tab) {
-      case "listAll":
-        return (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Todas as Armas</h2>
-            <Button onClick={carregarTodasArmas}><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Recarregar Lista</Button>
-            <div className="mt-6">{renderArmaList()}</div>
-          </div>
-        );
-      case "findById":
-        return (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Buscar Arma por ID</h2>
-            <div className="flex items-center gap-2 mb-6">
-              <Input type="number" placeholder="Digite o ID da arma" value={searchId || ""} onChange={(e) => setSearchId(parseInt(e.target.value) || 0)} />
-              <Button onClick={buscarArmaPorId}><Search className="mr-2 h-4 w-4" /> Buscar</Button>
             </div>
-            {arma && <Card>
-              <CardHeader><CardTitle>{arma.nome}</CardTitle><CardDescription>{arma.tipo}</CardDescription></CardHeader>
-              <CardContent><p><strong className="text-primary">Dano:</strong> {arma.dano}</p></CardContent>
-            </Card>}
-          </div>
         );
-      case "create":
-        return (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Criar Nova Arma</h2>
-            <Card>{armaForm(criarArma, "Criar Arma")}</Card>
-          </div>
-        );
-      case "update":
-        return (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Atualizar Arma</h2>
-            <p className="text-muted-foreground mb-4">Selecione uma arma da lista para editar.</p>
-            {renderArmaList({ onEdit: openEditModal })}
-          </div>
-        );
-      case "delete":
-        return (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Deletar Arma</h2>
-            <p className="text-muted-foreground mb-4">Selecione uma arma da lista para deletar.</p>
-            {renderArmaList({ onDelete: openDeleteModal })}
-          </div>
-        );
-      default:
-        return null;
     }
-  };
 
-  return (
-    <div className="container mx-auto p-4 md:p-8">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold flex items-center gap-3">
-          <Crosshair className="h-10 w-10 text-primary" />
-          Gerenciamento de Armas
-        </h1>
-        <p className="text-muted-foreground">
-          Adicione, remova, atualize e consulte informações sobre as armas do jogo.
-        </p>
-      </header>
+    return (
+        <div className="container mx-auto px-4 py-8">
+            {/* Header */}
+            <div className="mb-8">
+                <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
+                    <Crosshair className="h-10 w-10 text-primary" />
+                    Armas do Jogo
+                </h1>
+                <p className="text-muted-foreground">
+                    Explore todas as armas disponíveis no Rainbow Six Siege
+                </p>
+            </div>
 
-      {error && (
-        <Card className="bg-destructive/10 border-destructive text-destructive-foreground mb-6">
-          <CardContent className="p-4 flex items-center gap-3"><AlertTriangle className="h-5 w-5" /><p>{error}</p></CardContent>
-        </Card>
-      )}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                <h2 className="text-2xl font-bold">Todas as Armas</h2>
+                <Button
+                    onClick={() => fetchArmas()}
+                    variant="outline"
+                >
+                    Recarregar
+                </Button>
+            </div>
 
-      {loading && (
-        <Card className="bg-primary/10 border-primary text-primary-foreground mb-6">
-          <CardContent className="p-4 flex items-center gap-3"><Loader2 className="h-5 w-5 animate-spin" /><p>Carregando...</p></CardContent>
-        </Card>
-      )}
+            {/* Buscas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                {/* Busca por ID */}
+                <div className="flex flex-col gap-2">
+                    <Input
+                        type="number"
+                        placeholder="Buscar por ID"
+                        value={searchId || ""}
+                        onChange={(e) =>
+                            setSearchId(parseInt(e.target.value) || 0)
+                        }
+                    />
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={buscarArmaPorId}
+                            variant="outline"
+                            className="flex-1"
+                        >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
+                        {activeSearch === "id" && (
+                            <Button onClick={limparBusca} variant="ghost">
+                                Limpar
+                            </Button>
+                        )}
+                    </div>
+                </div>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 h-auto">
-          <TabsTrigger value="listAll">Listar Todas</TabsTrigger>
-          <TabsTrigger value="findById">Buscar por ID</TabsTrigger>
-          <TabsTrigger value="create">Criar</TabsTrigger>
-          <TabsTrigger value="update">Atualizar</TabsTrigger>
-          <TabsTrigger value="delete">Deletar</TabsTrigger>
-        </TabsList>
-        <div className="mt-6">
-          {renderContent(activeTab)}
+                {/* Busca por Dano Mínimo */}
+                <div className="flex flex-col gap-2">
+                    <Input
+                        type="number"
+                        placeholder="Dano mínimo"
+                        value={minDano || ""}
+                        onChange={(e) =>
+                            setMinDano(parseInt(e.target.value) || 0)
+                        }
+                    />
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={buscarPorDanoMinimo}
+                            variant="outline"
+                            className="flex-1"
+                        >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
+                        {activeSearch === "dano" && (
+                            <Button onClick={limparBusca} variant="ghost">
+                                Limpar
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Indicadores de busca ativa */}
+            {activeSearch === "id" && searchedArma && (
+                <Card className="mb-6 bg-primary/5 border-primary/20">
+                    <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">
+                            Mostrando resultado da busca por ID:{" "}
+                            <strong className="text-primary">{searchId}</strong>
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
+
+            {activeSearch === "dano" && (
+                <Card className="mb-6 bg-primary/5 border-primary/20">
+                    <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">
+                            Mostrando armas com dano mínimo de:{" "}
+                            <strong className="text-primary">{minDano}</strong>
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Lista de Armas */}
+            <div>
+                <h3 className="text-xl font-semibold mb-4">
+                    Resultados ({armas.length} armas)
+                </h3>
+                {armas.length === 0 ? (
+                    <p className="text-muted-foreground">
+                        Nenhuma arma encontrada.
+                    </p>
+                ) : (
+                    <ScrollArea className="h-[55vh] w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {armas.map((arma) => (
+                                <Card
+                                    key={arma.idArma}
+                                    className="flex flex-col justify-between h-full hover:bg-primary/5 transition-all duration-200"
+                                >
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center justify-between">
+                                            {arma.nome}
+                                            <span className="text-sm font-normal text-muted-foreground">
+                                                ID: {arma.idArma}
+                                            </span>
+                                        </CardTitle>
+                                        <CardDescription>{arma.tipo}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p>
+                                            <strong className="text-primary">
+                                                Dano:
+                                            </strong>{" "}
+                                            {arma.dano}
+                                        </p>
+                                    </CardContent>
+                                    <CardFooter className="flex justify-end gap-2 pt-4 border-t">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => handleEdit(arma)}
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => handleDelete(arma)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                )}
+            </div>
+
+            {/* Dialog de Edição */}
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Edit className="h-5 w-5 text-primary" />
+                            Editar Arma
+                        </DialogTitle>
+                        <DialogDescription>
+                            Atualize as informações da arma
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div>
+                            <Label htmlFor="edit-nome">Nome da Arma</Label>
+                            <Input
+                                id="edit-nome"
+                                value={editNome}
+                                onChange={(e) => setEditNome(e.target.value)}
+                                placeholder="Ex: AK-12"
+                                required
+                                disabled={actionLoading}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="edit-tipo">Tipo</Label>
+                            <Select
+                                value={editTipo}
+                                onValueChange={setEditTipo}
+                                disabled={actionLoading}
+                                required
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o tipo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {tiposArmas.map((tipo) => (
+                                        <SelectItem key={tipo} value={tipo}>
+                                            {tipo}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label htmlFor="edit-dano">Dano</Label>
+                            <Input
+                                id="edit-dano"
+                                type="number"
+                                value={editDano || ""}
+                                onChange={(e) =>
+                                    setEditDano(parseInt(e.target.value) || 0)
+                                }
+                                placeholder="Ex: 45"
+                                required
+                                disabled={actionLoading}
+                                min="1"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setIsEditModalOpen(false);
+                                setSelectedArma(null);
+                                setEditNome("");
+                                setEditTipo("");
+                                setEditDano(0);
+                            }}
+                            disabled={actionLoading}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={handleUpdate}
+                            disabled={
+                                actionLoading ||
+                                !editNome.trim() ||
+                                !editTipo ||
+                                !editDano
+                            }
+                        >
+                            {actionLoading ? "Salvando..." : "Salvar"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog de Confirmação de Deleção */}
+            <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Trash2 className="h-5 w-5 text-destructive" />
+                            Confirmar Deleção
+                        </DialogTitle>
+                        <DialogDescription>
+                            Você tem certeza que deseja deletar a arma{" "}
+                            <strong className="text-destructive">
+                                {selectedArma?.nome}
+                            </strong>
+                            ? Esta ação não pode ser desfeita.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setIsDeleteModalOpen(false);
+                                setSelectedArma(null);
+                            }}
+                            disabled={actionLoading}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDeleteConfirm}
+                            disabled={actionLoading}
+                        >
+                            {actionLoading ? "Deletando..." : "Deletar"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Botão flutuante para criar arma */}
+            <CreateWeaponButton onWeaponCreated={fetchArmas} />
         </div>
-      </Tabs>
-
-      {/* Edit Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Arma: {selectedArma?.nome}</DialogTitle>
-            <DialogDescription>Faça as alterações necessárias e clique em salvar.</DialogDescription>
-          </DialogHeader>
-          {armaForm(handleUpdateSubmit, "Salvar Alterações")}
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Modal */}
-      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Deleção</DialogTitle>
-            <DialogDescription>
-              Você tem certeza que deseja deletar a arma <strong className="text-destructive">{selectedArma?.nome}</strong>? Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>Deletar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Not Found Modal */}
-      <Dialog open={isNotFoundModalOpen} onOpenChange={setIsNotFoundModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Busca sem Resultados</DialogTitle>
-            <DialogDescription>
-              Nenhuma arma foi encontrada com o ID <strong className="text-primary">{searchId}</strong>. Por favor, tente um ID diferente.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setIsNotFoundModalOpen(false)}>Fechar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+    );
 }

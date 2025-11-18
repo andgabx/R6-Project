@@ -46,6 +46,7 @@ interface ListAllProps {
     setLoading: (loading: boolean) => void;
     error: string;
     setError: (error: string) => void;
+    onRefresh?: () => void;
 }
 
 export default function ListAll({
@@ -54,6 +55,7 @@ export default function ListAll({
     loading,
     setLoading,
     setError,
+    onRefresh,
 }: ListAllProps) {
     const [selectedJogador, setSelectedJogador] = useState<Jogador | null>(
         null
